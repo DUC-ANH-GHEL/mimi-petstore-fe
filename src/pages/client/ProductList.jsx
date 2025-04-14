@@ -1,0 +1,1 @@
+const ProductList = () => <h1 className="text-2xl">Danh sách sản phẩm</h1>; export default ProductList;

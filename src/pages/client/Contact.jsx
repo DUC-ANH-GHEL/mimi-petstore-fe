@@ -1,0 +1,1 @@
+const Contact = () => <h1 className="text-2xl">Liên hệ</h1>; export default Contact;

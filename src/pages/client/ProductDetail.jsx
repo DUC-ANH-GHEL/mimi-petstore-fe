@@ -1,0 +1,1 @@
+const ProductDetail = () => <h1 className="text-2xl">Chi tiết sản phẩm</h1>; export default ProductDetail;

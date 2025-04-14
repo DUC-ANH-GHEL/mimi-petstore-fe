@@ -1,0 +1,1 @@
+const Orders = () => <h1 className="text-2xl">Đơn hàng</h1>; export default Orders;
