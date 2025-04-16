@@ -57,9 +57,21 @@ const Dashboard = () => {
   return (
     <div className={`flex min-h-screen ${darkMode ? 'dark' : ''}`}>
       <Sidebar sidebarOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex-1 bg-gray-100 dark:bg-gray-900">
-        <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
-        <main className="p-6 space-y-6">
+      <div  
+      // className={`flex-1 bg-gray-100 dark:bg-gray-900 transition-all duration-300 ml-0 md:ml-[240px]`}
+      className="flex-1 bg-gray-100 dark:bg-gray-900"
+      style={{
+        marginLeft: sidebarOpen
+          ? window.innerWidth >= 768
+            ? 240
+            : 0
+          : window.innerWidth >= 768
+            ? 80
+            : 0
+      }}
+      >
+        <Header sidebarOpen={sidebarOpen}  darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
+        <main className="p-6 pt-24 space-y-6">
           <Breadcrumb items={[{ name: 'Trang chủ', path: '/', icon: <HomeIcon /> }, { name: 'Dashboard', path: '/dashboard' }]} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

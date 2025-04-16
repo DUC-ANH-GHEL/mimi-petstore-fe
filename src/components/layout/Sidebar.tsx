@@ -9,18 +9,18 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
   const navItems = [
-    { name: 'Dashboard', icon: <Home size={20} />, active: true },
-    { name: 'Sản phẩm', icon: <Package size={20} />, active: false },
-    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, active: false },
-    { name: 'Khách hàng', icon: <Users size={20} />, active: false },
-    { name: 'Voucher', icon: <Tag size={20} />, active: false },
-    { name: 'Bình luận', icon: <MessageSquare size={20} />, active: false },
-    { name: 'Báo cáo', icon: <BarChart3 size={20} />, active: false },
-    { name: 'Cài đặt', icon: <Settings size={20} />, active: false },
+    { name: 'Dashboard', icon: <Home size={20} />,url: "/", active: true },
+    { name: 'Sản phẩm', icon: <Package size={20} />, url: "/product", active: false },
+    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/order", active: false },
+    { name: 'Khách hàng', icon: <Users size={20} />, url:"/customer", active: false },
+    { name: 'Voucher', icon: <Tag size={20} />, url: "/vourcher", active: false },
+    { name: 'Bình luận', icon: <MessageSquare size={20} />, url: "/comment", active: false },
+    { name: 'Báo cáo', icon: <BarChart3 size={20} />, url: "/report", active: false },
+    { name: 'Cài đặt', icon: <Settings size={20} />, url: "/setting", active: false },
   ];
 
   return (
-    <div className={`${sidebarOpen ? 'w-60' : 'w-20'} flex-shrink-0 bg-gray-900 dark:bg-gray-950 text-white transition-all duration-300 ease-in-out z-20`}>
+    <div className={`${sidebarOpen ? 'w-60' : 'w-20'} fixed top-0 left-0 h-screen flex-shrink-0 bg-gray-900 dark:bg-gray-950 text-white transition-all duration-300 ease-in-out z-20`}>
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
         {sidebarOpen ? (
           <div className="flex items-center">
@@ -40,7 +40,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
           {navItems.map((item, index) => (
             <a
               key={index}
-              href="#"
+              href={item.url}
               className={`group flex items-center py-2 px-4 text-sm font-medium rounded-md ${
                 item.active ? 'bg-blue-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               } transition-colors`}

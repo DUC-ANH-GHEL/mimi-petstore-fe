@@ -1,0 +1,38 @@
+// src/components/PrivateRoute.jsx
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import axios from 'axios';
+
+const PrivateRoute = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [valid, setValid] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+      if (!token) {
+        setValid(false);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        await axios.get('/api/auth/verify', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setValid(true);
+      } catch {
+        setValid(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) return <div>Đang kiểm tra đăng nhập...</div>;
+  return valid ? children : <Navigate to="/admin/login" />;
+};
+
+export default PrivateRoute;

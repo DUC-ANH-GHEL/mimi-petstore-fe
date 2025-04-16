@@ -5,13 +5,18 @@ import { Bell, Moon, Sun } from 'lucide-react';
 interface HeaderProps {
   darkMode: boolean;
   toggleDarkMode: () => void;
+  sidebarOpen: boolean;
+
 }
 
-const Header = ({ darkMode, toggleDarkMode }: HeaderProps) => {
+const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md z-10">
-      <div className="h-16 px-4 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 shadow-md z-30"
+    style={{ marginLeft: sidebarOpen ? 240 : 80 }} // 240 = w-60, 80 = w-20
+    // className="bg-white dark:bg-gray-800 shadow-md z-10 "
+    >
+      <div className="h-16 px-4 flex items-center justify-between ">
         <div className="flex items-center">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AdminShop | Dashboard</h1>
         </div>
