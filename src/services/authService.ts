@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config/api';
 export const loginWithApi = async (email: string, password: string) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/auth/login`, {  
-        username: email,
+        email: email,
         password: password, },);
     const token = response.data?.accessToken || 'sample-token';
     localStorage.setItem('adminToken', token);

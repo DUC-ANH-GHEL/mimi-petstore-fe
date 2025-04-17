@@ -14,6 +14,7 @@ import Products from './pages/admin/Products'
 import Orders from './pages/admin/Orders'
 import AdminLoginPage from './pages/admin/Login'
 import PrivateRoute from './components/PrivateRoute';
+import CreateProduct from './pages/admin/CreateProduct'
 
 
 // const isLoggedIn = () => {
@@ -58,11 +59,10 @@ function App() {
         isLoggedIn() ? <Dashboard /> : <Navigate to="/admin/login" />
       }> */}
 
-      <Route path="/admin" element={
-        <PrivateRoute><Dashboard /></PrivateRoute>
-      }>
+      <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
+        <Route path="products/create" element={<CreateProduct />} />
         <Route path="orders" element={<Orders />} />
       </Route>
     </Routes>
