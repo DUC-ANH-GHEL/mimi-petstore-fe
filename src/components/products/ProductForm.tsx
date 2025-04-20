@@ -22,12 +22,17 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     description: '',
     sku: '',
     price: 0,
+    weight:0,
+    length: 0,
+    width: 0,
+    height:0,
     stock: 0,
     status: 'active',
     category: '',
     labels: [],
     images: [],
-    specs: [{ key: '', value: '' }],
+    // specs: [{ key: '', value: '' }],
+    specs: [],
     slug: '',
     metaTitle: '',
     metaDescription: '',
@@ -240,6 +245,76 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           </select>
         </div>
       </div>
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Weight */}
+        <div>
+          <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
+            Cân nặng <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="weight"
+            name="weight"
+            className={`w-full border ${errors.weight ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
+            value={formData.weight}
+            onChange={handleInputChange}
+            placeholder="Cân nặng (kg)"
+          />
+          {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
+        </div>
+
+        {/* Chiều dài */}
+        <div>
+          <label htmlFor="length" className="block text-sm font-medium text-gray-700 mb-1">
+            Chiều dài <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="length"
+            name="length"
+            className={`w-full border ${errors.length ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
+            value={formData.length}
+            onChange={handleInputChange}
+            min="0"
+          />
+          {errors.length && <p className="text-red-500 text-sm mt-1">{errors.length}</p>}
+        </div>
+
+        {/* Chiều rộng */}
+        <div>
+          <label htmlFor="width" className="block text-sm font-medium text-gray-700 mb-1">
+            Chiều rộng <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="width"
+            name="width"
+            className={`w-full border ${errors.width ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
+            value={formData.width}
+            onChange={handleInputChange}
+            min="0"
+          />
+          {errors.width && <p className="text-red-500 text-sm mt-1">{errors.width}</p>}
+        </div>
+
+        {/* Chiều cao */}
+        <div>
+          <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">
+            Chiều cao <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="height"
+            name="height"
+            className={`w-full border ${errors.height ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
+            value={formData.height}
+            onChange={handleInputChange}
+            min="0"
+          />
+          {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
+        </div>
+        
+      </div>
 
       {/* Tồn kho và Danh mục - flex trên desktop */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,9 +348,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             onChange={handleInputChange}
           >
             <option value="">-- Chọn danh mục --</option>
-            <option value="cylinder">Ty xy lanh</option>
-            <option value="valve">Van thủy lực</option>
-            <option value="handle">Tràng gạt</option>
+            <option value="1">Ty xy lanh</option>
+            <option value="2">Van thủy lực</option>
+            <option value="3">Tràng gạt</option>
           </select>
         </div>
       </div>

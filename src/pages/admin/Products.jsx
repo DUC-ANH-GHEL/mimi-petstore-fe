@@ -1,1 +1,0 @@
-const Products = () => <h1 className="text-2xl">Quản lý sản phẩm</h1>; export default Products;

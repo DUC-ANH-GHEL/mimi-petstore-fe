@@ -10,11 +10,11 @@ import ProductDetail from './pages/client/ProductDetail'
 import Contact from './pages/client/Contact'
 
 import Dashboard from './pages/admin/Dashboard'
-import Products from './pages/admin/Products'
-import Orders from './pages/admin/Orders'
+import Products from './pages/admin/Product/Products'
+import OrderCreate from './pages/admin/Order/OrderCreate'
 import AdminLoginPage from './pages/admin/Login'
 import PrivateRoute from './components/PrivateRoute';
-import CreateProduct from './pages/admin/CreateProduct'
+import CreateProduct from './pages/admin/Product/CreateProduct'
 
 
 // const isLoggedIn = () => {
@@ -63,7 +63,7 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="products/create" element={<CreateProduct />} />
-        <Route path="orders" element={<Orders />} />
+        <Route path="order" element={<OrderCreate />} />
       </Route>
     </Routes>
   )

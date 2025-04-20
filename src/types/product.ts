@@ -5,6 +5,10 @@ export interface ProductFormData {
     sku: string;
     price: number;
     stock: number;
+    weight: number;
+    length: number;
+    width : number;
+    height: number;
     status: 'active' | 'hidden' | 'out_of_stock';
     category: string;
     labels: string[];

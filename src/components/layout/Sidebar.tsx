@@ -131,7 +131,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
         { name: 'Tạo sản phẩm', url: '/admin/products/create' }
       ]
     },
-    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/order", active: false },
+    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/admin/order", active: false },
     { name: 'Khách hàng', icon: <Users size={20} />, url: "/customer", active: false },
     { name: 'Voucher', icon: <Tag size={20} />, url: "/vourcher", active: false },
     { name: 'Bình luận', icon: <MessageSquare size={20} />, url: "/comment", active: false },
