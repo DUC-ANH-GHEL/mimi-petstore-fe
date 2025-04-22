@@ -1,27 +1,32 @@
 // 📁 src/components/order/steps/ShippingAddressStep.tsx
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Address } from '../../../types/order';
+import { Address, Customer } from '../../../types/order';
 import { getProvinces, getDistricts, getWards } from '../../../services/viettelpostservice';
 
 
 
 type Props = {
   address: Address;
+  customer: Customer;
   onChange: (value: Address) => void;
   onNext: () => void;
   onPrev: () => void;
 };
 
-const ShippingAddressStep: React.FC<Props> = ({ address, onChange, onNext, onPrev }) => {
-  const [state, setState] = useState<Address>(address);
+const ShippingAddressStep: React.FC<Props> = ({ address, customer, onChange, onNext, onPrev }) => {
+  const [state, setState] = useState<Address>({
+    ...address,
+    receiverPhone: address.receiverPhone || customer.phone
+  });
   const [provinces, setProvinces] = useState<{ PROVINCE_ID: number; PROVINCE_NAME: string }[]>([]);
   const [districts, setDistricts] = useState<{ DISTRICT_ID: number; DISTRICT_NAME: string }[]>([]);
   const [wards, setWards] = useState<{ WARDS_ID: number; WARDS_NAME: string }[]>([]);
 
-  useEffect(() => {
-    setState(address);
-  }, [address]);
+
+  // useEffect(() => {
+  //   setState(address);
+  // }, [address]);
 
   useEffect(() => {
     getProvinces()

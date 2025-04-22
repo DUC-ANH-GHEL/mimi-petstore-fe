@@ -119,7 +119,20 @@ const OrderCreate = () => {
     detail: '',
     receiverPhone: '',
   });
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('standard');
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>({
+    SERVICE_CODE: '',
+    SERVICE_NAME: '',
+    TOTAL_FEE: 0,
+    KPI_HT: 0,
+    MONEY_COLLECTION_FEE: 0,
+    MONEY_FEE: 0,
+    MONEY_OTHER_FEE: 0,
+    MONEY_TOTAL: 0,
+    MONEY_TOTAL_FEE: 0,
+    MONEY_TOTAL_OLD: 0,
+    MONEY_VAS: 0,
+    MONEY_VAT:0
+  });
 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -179,18 +192,30 @@ const OrderCreate = () => {
         {step === 3 && (
           <ShippingAddressStep
             address={address}
+            customer={customer}
             onChange={setAddress}
             onNext={() => setStep(4)}
             onPrev={() => setStep(2)}
           />
         )}
 
-        {step === 4 && (
+        {/* {step === 4 && (
           <ShippingMethodStep
             value={shippingMethod}
             onChange={setShippingMethod}
             onNext={() => setStep(5)}
             onPrev={() => setStep(3)}
+          />
+        )} */}
+         {step === 4 && (
+          <ShippingMethodStep
+            value={shippingMethod || ''}
+            onChange={setShippingMethod}
+            // onChange={(method) => setShippingMethod(method as ShippingMethod)}
+            onNext={() => setStep(5)}
+            onPrev={() => setStep(3)}
+            address={{ province: address.province, district: address.district }}
+            products={products}
           />
         )}
 
@@ -199,7 +224,7 @@ const OrderCreate = () => {
             customer={customer}
             products={products}
             address={address}
-            shipping={{ method: shippingMethod, fee: 30000 }}
+            shipping={shippingMethod}
             onPrev={() => setStep(4)}
             onCreate={() => alert('Tạo đơn hàng thành công!')}
             provinces={provinces}

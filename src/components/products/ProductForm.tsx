@@ -258,7 +258,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             className={`w-full border ${errors.weight ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
             value={formData.weight}
             onChange={handleInputChange}
-            placeholder="Cân nặng (kg)"
+            placeholder="Cân nặng (gram)"
           />
           {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
         </div>
@@ -276,6 +276,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             value={formData.length}
             onChange={handleInputChange}
             min="0"
+            placeholder="Chiều dài (cm)"
           />
           {errors.length && <p className="text-red-500 text-sm mt-1">{errors.length}</p>}
         </div>
@@ -293,6 +294,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             value={formData.width}
             onChange={handleInputChange}
             min="0"
+            placeholder="Chiều rộng (cm)"
           />
           {errors.width && <p className="text-red-500 text-sm mt-1">{errors.width}</p>}
         </div>
@@ -310,6 +312,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             value={formData.height}
             onChange={handleInputChange}
             min="0"
+            placeholder="Chiều cao (cm)"
           />
           {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
         </div>

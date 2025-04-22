@@ -165,7 +165,7 @@ const ProductSelectionStep: React.FC<Props> = ({ selectedProducts: initial, onNe
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 5;
+  const limit = 2;
 
   useEffect(() => {
     setSelectedProducts(initial);

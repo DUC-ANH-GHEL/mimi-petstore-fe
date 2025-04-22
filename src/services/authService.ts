@@ -6,8 +6,12 @@ export const loginWithApi = async (email: string, password: string) => {
     const response = await axios.post(`${API_BASE_URL}/auth/login`, {  
         email: email,
         password: password, },);
-    const token = response.data?.accessToken || 'sample-token';
+    const token = response.data?.access_token || 'sample-token';
+    console.log("token", token)
+    alert(token)
+
     localStorage.setItem('adminToken', token);
+    sessionStorage.setItem('adminToken', token);
     return { success: true };
   } catch (error: any) {
     return {
