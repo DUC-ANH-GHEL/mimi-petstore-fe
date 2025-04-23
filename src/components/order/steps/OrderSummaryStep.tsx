@@ -124,14 +124,14 @@ const OrderSummaryStep: React.FC<Props> = ({
               <td className="p-2">Phí vận chuyển</td>
               <td></td>
               <td></td>
-              <td className="p-2 text-right">{formatCurrency(shipping.TOTAL_FEE)}</td>
+              <td className="p-2 text-right">{formatCurrency(shipping.MONEY_TOTAL)}</td>
             </tr>
-            <tr className="border-t font-semibold">
+            {/* <tr className="border-t font-semibold">
               <td className="p-2">Phí VAT</td>
               <td></td>
               <td></td>
               <td className="p-2 text-right">{formatCurrency(shipping.MONEY_VAT)}</td>
-            </tr>
+            </tr> */}
             <tr className="border-t font-semibold">
               <td className="p-2">Tổng</td>
               <td></td>

@@ -22,6 +22,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     description: '',
     sku: '',
     price: 0,
+    affiliate: 0,
     weight:0,
     length: 0,
     width: 0,
@@ -45,6 +46,15 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     }
   }, []);
 
+  // Hàm loại bỏ dấu tiếng Việt
+  function removeVietnameseTones(str) {
+    return str
+      .normalize("NFD")                     // Tách các ký tự dấu ra khỏi chữ cái gốc
+      .replace(/[\u0300-\u036f]/g, '')      // Xóa các dấu (accents)
+      .replace(/đ/g, 'd')                   // Chuyển đ -> d
+      .replace(/Đ/g, 'D');                  // Chuyển Đ -> D
+  }
+
   // Xử lý thay đổi input
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -53,7 +63,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     
     // Tự động tạo slug từ tên sản phẩm
     if (name === 'name') {
-      const slug = value
+      const slug = removeVietnameseTones(value)
         .toLowerCase()
         .replace(/[^\w\s]/gi, '')
         .replace(/\s+/g, '-');
@@ -189,7 +199,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
       </div>
 
       {/* SKU, Giá, Trạng thái - flex trên desktop */}
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Mã SKU */}
         <div>
           <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
@@ -227,6 +237,27 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
 
+         {/* % affiliate */}
+         <div>
+          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            % Affiliate <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="affiliate"
+            name="affiliate"
+            className={`w-full border ${errors.affiliate ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
+            value={formData.affiliate}
+            onChange={handleInputChange}
+            min="0"
+            max="100"
+          />
+          {formData.affiliate > 0 && (
+            <p className="text-gray-500 text-sm mt-1">{(formData.affiliate)}%</p>
+          )}
+          {errors.affiliate && <p className="text-red-500 text-sm mt-1">{errors.affiliate}</p>}
+        </div>
+
         {/* Trạng thái hiển thị */}
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
@@ -239,9 +270,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             value={formData.status}
             onChange={handleInputChange}
           >
-            <option value="active">Đang bán</option>
-            <option value="hidden">Ẩn</option>
-            <option value="out_of_stock">Hết hàng</option>
+            <option value="true">Đang bán</option>
+            <option value="false">Ẩn</option>
+            {/* <option value="out_of_stock">Hết hàng</option> */}
           </select>
         </div>
       </div>
@@ -260,6 +291,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             onChange={handleInputChange}
             placeholder="Cân nặng (gram)"
           />
+           {formData.weight > 0 && (
+            <p className="text-gray-500 text-sm mt-1">{(formData.weight)} g</p>
+          )}
           {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
         </div>
 
@@ -278,6 +312,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             min="0"
             placeholder="Chiều dài (cm)"
           />
+           {formData.length > 0 && (
+            <p className="text-gray-500 text-sm mt-1">{(formData.length)} cm</p>
+          )}
           {errors.length && <p className="text-red-500 text-sm mt-1">{errors.length}</p>}
         </div>
 
@@ -296,6 +333,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             min="0"
             placeholder="Chiều rộng (cm)"
           />
+            {formData.width > 0 && (
+            <p className="text-gray-500 text-sm mt-1">{(formData.width)} cm</p>
+          )}
           {errors.width && <p className="text-red-500 text-sm mt-1">{errors.width}</p>}
         </div>
 
@@ -314,6 +354,9 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             min="0"
             placeholder="Chiều cao (cm)"
           />
+            {formData.height > 0 && (
+            <p className="text-gray-500 text-sm mt-1">{(formData.height)} cm</p>
+          )}
           {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
         </div>
         

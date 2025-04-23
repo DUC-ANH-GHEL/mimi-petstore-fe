@@ -4,6 +4,7 @@ export interface ProductFormData {
     description: string;
     sku: string;
     price: number;
+    affiliate: number;
     stock: number;
     weight: number;
     length: number;

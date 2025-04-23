@@ -15,6 +15,7 @@ try {
     formData.append('description', productData.description);
     formData.append('sku', productData.sku);
     formData.append('price', productData.price.toString());
+    formData.append('affiliate', productData.affiliate.toString());
     formData.append('weight', productData.weight.toString());
     formData.append('length', productData.length.toString());
     formData.append('width',productData.width.toString());

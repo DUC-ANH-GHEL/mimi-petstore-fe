@@ -80,7 +80,7 @@ const ShippingMethodStep: React.FC<Props> = ({ value, onChange, onNext, onPrev, 
               TOTAL_FEE: res.data.MONEY_TOTAL_FEE,
               MONEY_COLLECTION_FEE: res.data.MONEY_COLLECTION_FEE,
               MONEY_FEE: res.data.MONEY_FEE,
-              KPI_HT: res.data.KPT_HT,
+              KPI_HT: res.data.KPI_HT,
               MONEY_OTHER_FEE: res.data.MONEY_OTHER_FEE,
               MONEY_TOTAL: res.data.MONEY_TOTAL,
               MONEY_TOTAL_FEE: res.data.MONEY_TOTAL_FEE,
@@ -135,11 +135,13 @@ const handleSelect = (method: ShippingMethod) => {
                 {method.SERVICE_NAME}
               </div>
               <div className="text-sm text-gray-600">
-                Phí: {method.TOTAL_FEE.toLocaleString()} đ
+                {/* Phí: {method.TOTAL_FEE.toLocaleString()} đ
                 <br/>
                 VAT: {method.MONEY_VAT.toLocaleString()} đ
+                <br/> */}
+                Time: {Math.round(method.KPI_HT / 24)} ngày
                 <br/>
-                Tổng: {method.MONEY_TOTAL.toLocaleString()} đ
+                Phí: {method.MONEY_TOTAL.toLocaleString()} đ
               </div>
             </div>
           ))}

@@ -124,6 +124,15 @@ const navigate = useNavigate();
                 <SortIcon field="price" />
               </span>
             </th>
+            <th 
+              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer"
+              onClick={() => handleSort('affiliate')}
+            >
+              <span className="flex items-center justify-end">
+                Affiliate
+                <SortIcon field="affiliate" />
+              </span>
+            </th>
             <th className="sticky top-0 border-b px-4 py-3 text-left">Trạng thái</th>
             <th className="sticky top-0 border-b px-4 py-3 text-left">Danh mục</th>
             <th className="sticky top-0 border-b px-4 py-3 text-center">Thao tác</th>
@@ -175,6 +184,9 @@ const navigate = useNavigate();
               </td>
               <td className="border-b px-4 py-3 text-right font-medium">
                 {formatPrice(product.price)}
+              </td>
+              <td className="border-b px-4 py-3 text-right font-medium">
+                {(product.affiliate)} %
               </td>
               <td className="border-b px-4 py-3">
                 <StatusBadge status={product.is_active} />
