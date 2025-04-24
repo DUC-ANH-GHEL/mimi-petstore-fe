@@ -15,25 +15,8 @@ import OrderCreate from './pages/admin/Order/OrderCreate'
 import AdminLoginPage from './pages/admin/Login'
 import PrivateRoute from './components/PrivateRoute';
 import CreateProduct from './pages/admin/Product/CreateProduct'
+import ProductDetailPage from './pages/admin/Product/ProductDetailPage'
 
-
-// const isLoggedIn = () => {
-//   return localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
-// }
-
-// const isLoggedIn = () => {
-//   const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
-//   if (!token) return false;
-
-//   try {
-//     const decoded = jwt_decode(token); // không dùng type annotation
-//     const exp = decoded.exp;
-//     const isExpired = exp * 1000 < Date.now();
-//     return !isExpired;
-//   } catch {
-//     return false;
-//   }
-// }
 
 
 function App() {
@@ -64,6 +47,7 @@ function App() {
         <Route path="products" element={<Products />} />
         <Route path="products/create" element={<CreateProduct />} />
         <Route path="order" element={<OrderCreate />} />
+        <Route path="product/:id" element={<ProductDetailPage />} />
       </Route>
     </Routes>
   )
