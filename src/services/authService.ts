@@ -8,7 +8,6 @@ export const loginWithApi = async (email: string, password: string) => {
         password: password, },);
     const token = response.data?.access_token || 'sample-token';
     console.log("token", token)
-    alert(token)
 
     localStorage.setItem('adminToken', token);
     sessionStorage.setItem('adminToken', token);
