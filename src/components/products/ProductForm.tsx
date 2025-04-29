@@ -5,16 +5,20 @@ import { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
 import { ProductFormData, FormError } from '../../types/product';
 import ImageUploader from './ImageUploader';
 import SpecificationFields from './SpecificationFields';
-import { createProduct } from '../../services/productService';
+import { createProduct, getProductById, getProductImageByProductId } from '../../services/productService';
+import { useParams } from "react-router-dom";
 
 interface ProductFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  id: number | null;
 }
 
-const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
+
+const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<FormError>({});
+  const [product, setProduct] = useState<ProductFormData>();
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -29,6 +33,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     height:0,
     stock: 0,
     status: 'active',
+    is_active: true,
     category: '',
     labels: [],
     images: [],
@@ -39,6 +44,31 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
     metaDescription: '',
   });
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await getProductById(id);
+        const imageList = await getProductImageByProductId(id);
+        const listImage: string[] = []
+        imageList.forEach(element => {
+          listImage.push(element.image_url)
+        });
+        // Gộp luôn dữ liệu response + imageList 1 lần duy nhất
+        const fullData = { ...response, images: listImage };
+  
+        setProduct(fullData);
+        setFormData(fullData);
+        console.log(fullData)
+      } catch (error) {
+        console.log("Lỗi lấy sản phẩm: ", error);
+      }
+    };
+  
+    if (id !== null) { // chỉ fetch khi id có giá trị
+      fetchProduct();
+    }
+  }, [id]);
+  
   // Focus vào ô tên sản phẩm khi component được mount
   useEffect(() => {
     if (nameInputRef.current) {
@@ -99,6 +129,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
   // Xử lý cập nhật hình ảnh
   const handleImagesUpdate = (images: File[]) => {
     setFormData(prev => ({ ...prev, images }));
+    console.log(formData)
   };
 
   // Định dạng giá tiền
@@ -402,7 +433,7 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
       </div>
 
       {/* Nhãn */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">Nhãn</label>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center">
@@ -442,16 +473,16 @@ const ProductForm = ({ onSuccess, onCancel }: ProductFormProps) => {
             </label>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Upload ảnh sản phẩm */}
       <ImageUploader onImagesUpdate={handleImagesUpdate} />
 
       {/* Thông số kỹ thuật */}
-      <SpecificationFields 
+      {/* <SpecificationFields 
         specs={formData.specs} 
         onSpecsUpdate={handleSpecsUpdate} 
-      />
+      /> */}
 
       {/* SEO Section */}
       <div className="mb-4 border-t border-gray-200 pt-4 mt-6">

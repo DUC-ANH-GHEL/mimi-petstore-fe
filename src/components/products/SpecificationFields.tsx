@@ -17,9 +17,19 @@ const SpecificationFields = ({ specs, onSpecsUpdate }: SpecificationFieldsProps)
   const [specifications, setSpecifications] = useState<Specification[]>(specs);
 
   // Gửi specs ra ngoài khi có thay đổi
-  useEffect(() => {
-    onSpecsUpdate(specifications);
-  }, [specifications, onSpecsUpdate]);
+  // useEffect(() => {
+  //   onSpecsUpdate(specifications);
+  // }, [specifications, onSpecsUpdate]);
+
+    // ⚡ Khi props.specs thay đổi, cập nhật lại state nội bộ
+    useEffect(() => {
+      setSpecifications(specs);
+    }, [specs]);
+  
+    // Gửi specs ra ngoài khi có thay đổi specifications
+    useEffect(() => {
+      onSpecsUpdate(specifications);
+    }, [specifications, onSpecsUpdate]);
 
   const handleSpecChange = (index: number, field: 'key' | 'value', value: string) => {
     const updatedSpecs = [...specifications];

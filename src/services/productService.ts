@@ -70,36 +70,29 @@ export const getProducts = async (params: {
     }
   };
 
+  export const  getProductById = async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/products/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching product ${id}:`, error);
+      throw error;
+    }
+  };
+
+  export const getProductImageByProductId = async (productId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/products/images/${productId}`);
+      return response.data;
+    } catch (error) {
+      console.log(`Error fetching product image:`,  error)
+      throw error
+    }
+  };
+
 export const productService = {
 
-    /**
-   * Get products with filters, pagination and sorting
-   */
-//   getProducts: async (filters) => {
-//     try {
-//       const { search, category, status, page, limit, sortBy, sortOrder } = filters;
-      
-//       const response = await axios.get(`${API_BASE_URL}/products`, {
-//         params: {
-//           search,
-//           categoryId: category,
-//           status,
-//           page,
-//           limit,
-//           sortBy,
-//           sortOrder
-//         }
-//       });
-      
-//       return {
-//         data: response.data.products,
-//         totalCount: response.data.totalCount
-//       };
-//     } catch (error) {
-//       console.error('Error fetching products:', error);
-//       throw error;
-//     }
-//   },
+   
 getProducts: async (filters) => {
     try {
       const { search, category, status, page, limit, sortBy, sortOrder } = filters;
@@ -135,6 +128,16 @@ getProducts: async (filters) => {
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
       throw error;
+    }
+  },
+
+  getProductImageByProductId: async (productId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/products/images/${productId}`);
+      return response.data;
+    } catch (error) {
+      console.log(`Error fetching product image:`,  error)
+      throw error
     }
   },
   

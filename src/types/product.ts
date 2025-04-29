@@ -11,6 +11,7 @@ export interface ProductFormData {
     width : number;
     height: number;
     status: 'active' | 'hidden' | 'out_of_stock';
+    is_active: boolean;
     category: string;
     labels: string[];
     images: File[];
@@ -22,4 +23,11 @@ export interface ProductFormData {
   
   export interface FormError {
     [key: string]: string;
+  }
+
+  export interface ProductImage{
+    product_id: number;
+    image_url: string;
+    is_primary: boolean;
+    id: number;
   }
