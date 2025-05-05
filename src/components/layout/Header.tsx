@@ -18,7 +18,7 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
     >
       <div className="h-16 px-4 flex items-center justify-between ">
         <div className="flex items-center">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AdminShop | Dashboard</h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AdminShop</h1>
         </div>
         
         <div className="flex items-center space-x-4">
