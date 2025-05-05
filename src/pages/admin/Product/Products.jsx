@@ -116,12 +116,12 @@ const Products = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          {/* <FilterBar 
+          <FilterBar 
             onSearchChange={handleSearchChange} 
             onFilterChange={handleFilterChange}
             onBulkDelete={selectedItems.length > 0 ? handleDeleteSelected : null}
             selectedCount={selectedItems.length}
-          /> */}
+          />
           
           <ProductsTable 
             products={products}

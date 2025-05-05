@@ -10,46 +10,46 @@ const FilterBar = ({ onSearchChange, onFilterChange, onBulkDelete, selectedCount
   
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   
-  useEffect(() => {
-    // Fetch categories for dropdown
-    const fetchCategories = async () => {
-      try {
-        const response = await productService.getCategories();
-        setCategories(response);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
+  // useEffect(() => {
+  //   // Fetch categories for dropdown
+  //   const fetchCategories = async () => {
+  //     try {
+  //       const response = await productService.getCategories();
+  //       setCategories(response);
+  //     } catch (error) {
+  //       console.error('Error fetching categories:', error);
+  //     }
+  //   };
     
-    fetchCategories();
-  }, []);
+  //   fetchCategories();
+  // }, []);
   
   useEffect(() => {
     onSearchChange(debouncedSearchTerm);
-  }, [debouncedSearchTerm, onSearchChange]);
+  }, [debouncedSearchTerm]);
   
-  const handleCategoryChange = (e) => {
-    const value = e.target.value;
-    setSelectedCategory(value);
-    onFilterChange({ category: value });
-  };
+  // const handleCategoryChange = (e) => {
+  //   const value = e.target.value;
+  //   setSelectedCategory(value);
+  //   onFilterChange({ category: value });
+  // };
   
-  const handleStatusChange = (e) => {
-    const value = e.target.value;
-    setSelectedStatus(value);
-    onFilterChange({ status: value });
-  };
+  // const handleStatusChange = (e) => {
+  //   const value = e.target.value;
+  //   setSelectedStatus(value);
+  //   onFilterChange({ status: value });
+  // };
   
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setSelectedStatus('all');
-    onFilterChange({
-      search: '',
-      category: '',
-      status: 'all'
-    });
-  };
+  // const handleResetFilters = () => {
+  //   setSearchTerm('');
+  //   setSelectedCategory('');
+  //   setSelectedStatus('all');
+  //   onFilterChange({
+  //     search: '',
+  //     category: '',
+  //     status: 'all'
+  //   });
+  // };
   
   return (
     <div className="mb-6">
@@ -90,7 +90,7 @@ const FilterBar = ({ onSearchChange, onFilterChange, onBulkDelete, selectedCount
         <div className="w-full md:w-48">
           <select
             value={selectedStatus}
-            onChange={handleStatusChange}
+            // onChange={handleStatusChange}
             className="w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">Tất cả trạng thái</option>
@@ -104,7 +104,7 @@ const FilterBar = ({ onSearchChange, onFilterChange, onBulkDelete, selectedCount
       <div className="flex justify-between items-center">
         {/* Reset filters button */}
         <button
-          onClick={handleResetFilters}
+          // onClick={handleResetFilters}
           className="text-gray-600 hover:text-gray-800 text-sm flex items-center gap-1"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
