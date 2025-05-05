@@ -124,7 +124,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
     {
       name: 'Sản phẩm',
       icon: <Package size={20} />,
-      url: "/products",
+      url: "/admin/products",
       active: false,
       children: [
         { name: 'Tất cả sản phẩm', url: '/admin/products' },

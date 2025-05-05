@@ -1,25 +1,5 @@
-// import { Link, Outlet } from 'react-router-dom'
 
-// const AdminLayout = () => (
-//   <div className="flex">
-//     <aside className="w-64 bg-gray-800 text-white min-h-screen p-4">
-//       <h2 className="text-xl font-bold mb-4">Admin</h2>
-//       <nav className="flex flex-col gap-2">
-//         <Link to="/admin">Dashboard</Link>
-//         <Link to="/admin/products">Products</Link>
-//         <Link to="/admin/orders">Orders</Link>
-//       </nav>
-//     </aside>
-//     <main className="flex-1 p-6 bg-gray-50">
-//       <Outlet />
-//     </main>
-//   </div>
-// )
-
-// export default AdminLayout
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
@@ -31,6 +11,26 @@ const AdminLayout = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  // Kiểm tra kích thước màn hình và cập nhật trạng thái `isMobile`
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth <= 768) {
+        // setIsMobile(true);
+        setSidebarOpen(false); // Đóng sidebar khi ở mobile
+      } else {
+        // setIsMobile(false);
+        setSidebarOpen(true); // Mở sidebar khi ở desktop
+      }
+    };
+
+    checkMobile();  // Kiểm tra ngay khi component được render
+    window.addEventListener('resize', checkMobile);  // Kiểm tra lại khi thay đổi kích thước màn hình
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);  // Dọn dẹp event listener khi component bị unmount
+    };
+  }, []);
 
   return (
     <div className="flex h-screen">
