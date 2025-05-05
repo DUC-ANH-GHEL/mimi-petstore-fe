@@ -108,10 +108,10 @@ const Products = () => {
           <h1 className="text-2xl font-bold text-gray-800">Quản lý Sản phẩm</h1>
           <button 
             onClick={handleCreateProduct}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className=" text-white px-4 py-2 rounded-md flex items-center gap-2"
           >
-            <span className="material-icons text-sm">add</span>
-            Thêm sản phẩm
+            <span className="material-icons text-sm"><img src="https://img.icons8.com/matisse/100/add-product.png" alt="" /></span>
+              
           </button>
         </div>
 

@@ -97,17 +97,17 @@ const navigate = useNavigate();
       <table className="min-w-full bg-white border-separate border-spacing-0">
         <thead className="bg-gray-50">
           <tr>
-            <th className="sticky top-0 border-b px-4 py-3 text-left">
+            <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">
               <input
                 type="checkbox"
                 checked={allSelected}
                 onChange={(e) => onSelectAll(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 hidden lg:table-cell"
               />
             </th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left">Ảnh</th>
+            <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">Ảnh</th>
             <th 
-              className="sticky top-0 border-b px-4 py-3 text-left cursor-pointer"
+              className="sticky top-0 border-b px-4 py-3 text-left cursor-pointer sm:table-cell lg:table-cell"
               onClick={() => handleSort('name')}
             >
               <span className="flex items-center">
@@ -116,7 +116,7 @@ const navigate = useNavigate();
               </span>
             </th>
             <th 
-              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer"
+              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer sm:table-cell lg:table-cell"
               onClick={() => handleSort('price')}
             >
               <span className="flex items-center justify-end">
@@ -125,7 +125,7 @@ const navigate = useNavigate();
               </span>
             </th>
             <th 
-              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer"
+              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer hidden md:hidden lg:table-cell"
               onClick={() => handleSort('affiliate')}
             >
               <span className="flex items-center justify-end">
@@ -133,9 +133,9 @@ const navigate = useNavigate();
                 <SortIcon field="affiliate" />
               </span>
             </th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left">Trạng thái</th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left">Danh mục</th>
-            <th className="sticky top-0 border-b px-4 py-3 text-center">Thao tác</th>
+            <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Trạng thái</th>
+            <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Danh mục</th>
+            <th className="sticky top-0 border-b px-4 py-3 text-center hidden lg:table-cell">Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -145,7 +145,7 @@ const navigate = useNavigate();
               className="hover:bg-gray-50 cursor-pointer"
               onClick={() => handleRowClick(product.id)}
             >
-              <td className="border-b px-4 py-3" onClick={(e) => e.stopPropagation()}>
+              <td className="border-b px-4 py-3 sm:table-cell lg:table-cell hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
                   checked={selectedItems.includes(product.id)}
@@ -153,7 +153,7 @@ const navigate = useNavigate();
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
               </td>
-              <td className="border-b px-4 py-3">
+              <td className="border-b px-4 py-3 hidden lg:table-cell">
                 <div className="w-12 h-12 relative">
                   {product.image ? (
                     // <img
@@ -176,25 +176,25 @@ const navigate = useNavigate();
                   )}
                 </div>
               </td>
-              <td className="border-b px-4 py-3">
+              <td className="border-b px-4 py-3 sm:table-cell lg:table-cell">
                 <div>
                   <div className="font-medium text-gray-900">{product.name}</div>
                   <div className="text-xs text-gray-500">SKU: {product.sku}</div>
                 </div>
               </td>
-              <td className="border-b px-4 py-3 text-right font-medium">
+              <td className="border-b px-4 py-3 text-right font-medium sm:table-cell lg:table-cell">
                 {formatPrice(product.price)}
               </td>
-              <td className="border-b px-4 py-3 text-right font-medium">
+              <td className="border-b px-4 py-3 text-right font-medium max-w-xs hidden md:hidden lg:table-cell">
                 {(product.affiliate)} %
               </td>
-              <td className="border-b px-4 py-3">
+              <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
                 <StatusBadge status={product.is_active} />
               </td>
-              <td className="border-b px-4 py-3">
+              <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
                 {product.category?.name || '-'}
               </td>
-              <td className="border-b px-4 py-3" onClick={(e) => e.stopPropagation()}>
+              <td className="border-b px-4 py-3 hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={(e) => handleEdit(e, product.id)}
