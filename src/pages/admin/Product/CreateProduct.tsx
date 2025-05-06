@@ -11,7 +11,7 @@ const CreateProduct = () => {
 
   const handleSuccess = () => {
     // Có thể điều hướng hoặc hiện toast thành công
-    alert("Sản phẩm đã được tạo thành công!");
+    // alert("Sản phẩm đã được tạo thành công!");
   };
 
   const handleCancel = () => {

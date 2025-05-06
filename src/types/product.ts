@@ -12,9 +12,9 @@ export interface ProductFormData {
     height: number;
     status: 'active' | 'hidden' | 'out_of_stock';
     is_active: boolean;
-    category: string;
+    category_id: number;
     labels: string[];
-    images: File[];
+    images: File[] | string[];
     specs: { key: string; value: string }[];
     slug: string;
     metaTitle: string;

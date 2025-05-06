@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PencilIcon } from '@heroicons/react/24/outline';
 
 const ProductsTable = ({ 
   products, 
@@ -72,7 +73,7 @@ const navigate = useNavigate();
   // Edit product
   const handleEdit = (e, productId) => {
     e.stopPropagation();
-    navigate(`/admin/product/${productId}`);
+    navigate(`/admin/product/update/${productId}`);
   };
 
   // Table row click to view/edit detail
@@ -145,7 +146,7 @@ const navigate = useNavigate();
               className="hover:bg-gray-50 cursor-pointer"
               onClick={() => handleRowClick(product.id)}
             >
-              <td className="border-b px-4 py-3 sm:table-cell lg:table-cell hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+              <td className="border-b px-4 py-3  hidden md:hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
                   checked={selectedItems.includes(product.id)}
@@ -200,6 +201,16 @@ const navigate = useNavigate();
                     onClick={(e) => handleEdit(e, product.id)}
                     className="text-blue-600 hover:text-blue-800"
                     title="Sửa sản phẩm"
+                  >
+                    {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg> */}
+                     <PencilIcon className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <button
+                    onClick={(e) => handleEdit(e, product.id)}
+                    className="text-blue-600 hover:text-blue-800"
+                    title="Xóa sản phẩm"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

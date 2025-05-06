@@ -2,27 +2,36 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import React from "react";
 
-
+type ImageItem = File | string; // File mới hoặc URL cũ
 interface ImageUploaderProps {
-  onImagesUpdate: (images: File[]) => void;
-  initialImages?: File[];
+  onImagesUpdate: (images: File[], existing: string[]) => void;
+  initialImages?: string[] | File[];
 }
 
 const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProps) => {
-  const [images, setImages] = useState<File[]>(initialImages);
+  const [images, setImages] = useState<ImageItem[]>([...initialImages]);
   const [previews, setPreviews] = useState<string[]>([]);
+  console.log("images",images)
 
+  useEffect(() => {
+    setImages([...initialImages])
+  }, [initialImages])
   // Tạo previews khi images thay đổi
   useEffect(() => {
     // Xóa previews cũ để tránh memory leak
     previews.forEach(URL.revokeObjectURL);
     
     // Tạo previews mới
-    const newPreviews = images.map(file => URL.createObjectURL(file));
+    const newPreviews = images.map(file => 
+      typeof file === 'string'
+      ? file
+      :URL.createObjectURL(file));
     setPreviews(newPreviews);
     
     // Callback để truyền images ra ngoài
-    onImagesUpdate(images);
+    const files = images.filter(img => img instanceof File) as File[];
+    const exsiting = images.filter(img => img === 'string') as string[];
+    onImagesUpdate(files, exsiting);
     
     // Cleanup khi component unmount
     return () => {

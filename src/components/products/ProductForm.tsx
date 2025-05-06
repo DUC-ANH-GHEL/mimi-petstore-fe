@@ -34,7 +34,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     stock: 0,
     status: 'active',
     is_active: true,
-    category: '',
+    category_id: 0,
     labels: [],
     images: [],
     // specs: [{ key: '', value: '' }],
@@ -55,7 +55,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         });
         // Gộp luôn dữ liệu response + imageList 1 lần duy nhất
         const fullData = { ...response, images: listImage };
-  
         setProduct(fullData);
         setFormData(fullData);
         console.log(fullData)
@@ -127,8 +126,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   };
 
   // Xử lý cập nhật hình ảnh
-  const handleImagesUpdate = (images: File[]) => {
-    setFormData(prev => ({ ...prev, images }));
+  const handleImagesUpdate = (files: File[], images: string[]) => {
+    setFormData(prev => ({ ...prev, files }));
     console.log(formData)
   };
 
@@ -210,6 +209,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           value={formData.name}
           onChange={handleInputChange}
           placeholder="Nhập tên sản phẩm"
+          maxLength={100}
         />
         {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
@@ -421,13 +421,13 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             id="category"
             name="category"
             className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500"
-            value={formData.category}
+            value={formData.category_id}
             onChange={handleInputChange}
           >
             <option value="">-- Chọn danh mục --</option>
             <option value="1">Ty xy lanh</option>
             <option value="2">Van thủy lực</option>
-            <option value="3">Tràng gạt</option>
+            <option value="3">Trang gạt</option>
           </select>
         </div>
       </div>
@@ -476,7 +476,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       </div> */}
 
       {/* Upload ảnh sản phẩm */}
-      <ImageUploader onImagesUpdate={handleImagesUpdate} />
+      <ImageUploader onImagesUpdate={handleImagesUpdate} initialImages={formData.images} />
 
       {/* Thông số kỹ thuật */}
       {/* <SpecificationFields 
@@ -553,7 +553,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           type="submit"
           className="bg-teal-600 text-white px-5 py-2 rounded hover:bg-teal-700 transition"
         >
-          Tạo sản phẩm
+          {id? "Cập nhật" :"Tạo sản phẩm"}
         </button>
       </div>
     </form>
