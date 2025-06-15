@@ -1,8 +1,9 @@
 // src/services/productService.ts
-import { ProductFormData } from '../types/product';
+import { ProductFormData, ProductFormDataUpdate } from '../types/product';
 import { API_BASE_URL } from '../config/api';
 
 import axios from 'axios';
+import { json } from 'react-router-dom';
 
 export const // Hàm gọi API tạo sản phẩm mới
 createProduct = async (productData: ProductFormData): Promise<any> => {
@@ -22,7 +23,7 @@ try {
     formData.append('height', productData.height.toString());
     formData.append('stock', productData.stock.toString());
     formData.append('status', productData.status);
-    formData.append('category_id', productData.category);
+    formData.append('category_id', productData.category_id.toString());
     formData.append('labels', JSON.stringify(productData.labels));
     formData.append('specs', JSON.stringify(productData.specs));
     formData.append('slug', productData.slug);
@@ -50,6 +51,55 @@ try {
     console.error('Error creating product:', error);
     throw error;
 }
+};
+
+export const updateProduct = async (productUpdate: ProductFormDataUpdate) : Promise<any> => {
+  try{
+    const formData = new FormData();
+    if(productUpdate.id != undefined){
+      formData.append('id', productUpdate.id.toString());
+    }
+    formData.append('name', productUpdate.name);
+    formData.append('description',  productUpdate.description);
+    formData.append('sku', productUpdate.sku);
+    formData.append('price', productUpdate.price.toString());
+    formData.append('affiliate', productUpdate.affiliate.toString());
+    formData.append('weight', productUpdate.weight.toString());
+    formData.append('length', productUpdate.length.toString());
+    formData.append('width', productUpdate.width.toString());
+    formData.append('height', productUpdate.height.toString());
+    if(productUpdate.stock != undefined){
+      formData.append('stock', productUpdate.stock.toString());
+    }
+    formData.append('status', productUpdate.status);
+    formData.append('category_id', productUpdate.category_id.toString());
+    formData.append('labels', JSON.stringify(productUpdate.labels));
+    formData.append('specs', JSON.stringify(productUpdate.specs));
+    formData.append('slug', productUpdate.slug);
+    formData.append('metaTitle', productUpdate.metaTitle);
+    formData.append('metaDescription', productUpdate.metaDescription);
+
+    productUpdate.images.forEach(element => {
+      formData.append('images', element);
+    });
+    productUpdate.listImageCurrent.forEach(image => {
+      formData.append('listImageCurrent', image);
+    })
+
+    const response = await fetch(`${API_BASE_URL}/products/update`, {
+      method: 'PUT',
+      body: formData
+    })
+
+    if(!response.ok){
+      throw new Error('Fail to update product')
+    }
+
+    return await response.json()
+  }
+  catch(error){
+    throw error;
+  }
 };
 
 export const getProducts = async (params: {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
@@ -36,7 +35,7 @@ const AdminLayout = () => {
     <div className="flex h-screen">
       <Sidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className="flex-1 flex flex-col bg-gray-100">
+      <div className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
          {/* ✅ HEADER CHUNG */}
    
     <Header sidebarOpen={sidebarOpen}  darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />

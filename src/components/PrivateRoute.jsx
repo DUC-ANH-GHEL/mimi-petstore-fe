@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const PrivateRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,7 @@ const PrivateRoute = ({ children }) => {
       }
 
       try {
-        await axios.get('/api/auth/verify', {
+        await axios.get(`${API_BASE_URL}/auth/verify`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setValid(true);

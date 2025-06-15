@@ -1,113 +1,6 @@
-// import React, {useState} from 'react';
-// import { Home, Package, Users, Tag, MessageSquare, BarChart3, Settings, ShoppingCart, X, Menu, Zap, ChevronDown } from 'lucide-react';
-
-// interface SidebarProps {
-//   sidebarOpen: boolean;
-//   toggleSidebar: () => void;
-// }
-
-
-
-
-// const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
-//   const [productSubOpen, setProductSubOpen] = useState(false);
-
-//   const navItems = [
-//     { name: 'Dashboard', icon: <Home size={20} />,url: "/admin", active: true },
-//     // { name: 'Sản phẩm', icon: <Package size={20} />, url: "/product", active: false },
-//     {
-//       name: 'Sản phẩm',
-//       icon: <Package size={20} />,
-//       url: "/products",
-//       active: false,
-//       children: [
-//         { name: 'Tất cả sản phẩm', url: '/admin/products' },
-//         { name: 'Tạo sản phẩm', url: '/admin/products/create' }
-//       ]
-//     },
-//     { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/order", active: false },
-//     { name: 'Khách hàng', icon: <Users size={20} />, url:"/customer", active: false },
-//     { name: 'Voucher', icon: <Tag size={20} />, url: "/vourcher", active: false },
-//     { name: 'Bình luận', icon: <MessageSquare size={20} />, url: "/comment", active: false },
-//     { name: 'Báo cáo', icon: <BarChart3 size={20} />, url: "/report", active: false },
-//     { name: 'Cài đặt', icon: <Settings size={20} />, url: "/setting", active: false },
-//   ];
-
- 
-//   return (
-//     <div className={`${sidebarOpen ? 'w-64' : 'w-20'} fixed top-0 left-0 h-screen bg-gray-900 text-white transition-all duration-300 ease-in-out z-20`}>
-//       {/* Header */}
-//       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
-//         {sidebarOpen ? (
-//           <div className="flex items-center space-x-2">
-//             <Zap className="h-6 w-6 text-blue-500" />
-//             <span className="font-semibold text-lg">AdminShop</span>
-//           </div>
-//         ) : (
-//           <Zap className="h-6 w-6 text-blue-500 mx-auto" />
-//         )}
-//         <button onClick={toggleSidebar} className="p-1 rounded-md hover:bg-gray-800">
-//           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-//         </button>
-//       </div>
-
-//       {/* Navigation */}
-//       <nav className="mt-5 px-2 space-y-1">
-//         {navItems.map((item, index) => {
-//           if (!item.children) {
-//             return (
-//               <a
-//                 key={index}
-//                 href={item.url}
-//                 className="flex items-center gap-3 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition"
-//               >
-//                 {item.icon}
-//                 {sidebarOpen && <span>{item.name}</span>}
-//               </a>
-//             );
-//           }
-
-//           return (
-//             <div key={index} className="space-y-1">
-//               <button
-//                 onClick={() => setProductSubOpen(!productSubOpen)}
-//                 className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition"
-//               >
-//                 <div className="flex items-center gap-3">
-//                   {item.icon}
-//                   {sidebarOpen && <span>{item.name}</span>}
-//                 </div>
-//                 {sidebarOpen && <ChevronDown size={16} className={`${productSubOpen ? 'rotate-180' : ''} transition-transform`} />}
-//               </button>
-//               {productSubOpen && sidebarOpen && (
-//                 <div className="ml-10 space-y-1">
-//                   {item.children.map((child, cIdx) => (
-//                     <a
-//                       key={cIdx}
-//                       href={child.url}
-//                       className="block text-sm text-gray-400 hover:text-white transition"
-//                     >
-//                       {child.name}
-//                     </a>
-//                   ))}
-//                 </div>
-//               )}
-//             </div>
-//           );
-//         })}
-//       </nav>
-//     </div>
-//   );
-// };
-
-// // };
-
-// export default Sidebar;
-
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Package, Users, Tag, MessageSquare, BarChart3, Settings, ShoppingCart, X, Menu, Zap, ChevronDown } from 'lucide-react';
+import { Home, Package, Users, Tag, MessageSquare, BarChart3, Settings, ShoppingCart, X, Menu, Zap, ChevronDown, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -120,27 +13,24 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   const navItems = [
-    { name: 'Dashboard', icon: <Home size={20} />, url: "/admin", active: true },
+    { name: 'Dashboard', icon: <Home size={20} />, url: "/admin" },
     {
       name: 'Sản phẩm',
-      icon: <Package size={20} />,
-      url: "/admin/products",
-      active: false,
+      icon: <Package size={20} />, url: "/admin/products",
       children: [
         { name: 'Tất cả sản phẩm', url: '/admin/products' },
         { name: 'Tạo sản phẩm', url: '/admin/products/create' }
       ]
     },
-    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/admin/order", active: false },
-    { name: 'Khách hàng', icon: <Users size={20} />, url: "/customer", active: false },
-    { name: 'Voucher', icon: <Tag size={20} />, url: "/vourcher", active: false },
-    { name: 'Bình luận', icon: <MessageSquare size={20} />, url: "/comment", active: false },
-    { name: 'Báo cáo', icon: <BarChart3 size={20} />, url: "/report", active: false },
-    { name: 'Cài đặt', icon: <Settings size={20} />, url: "/setting", active: false },
+    { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/admin/order" },
+    { name: 'Khách hàng', icon: <Users size={20} />, url: "/customer" },
+    { name: 'Voucher', icon: <Tag size={20} />, url: "/vourcher" },
+    { name: 'Bình luận', icon: <MessageSquare size={20} />, url: "/comment" },
+    { name: 'Báo cáo', icon: <BarChart3 size={20} />, url: "/report" },
+    { name: 'Cài đặt', icon: <Settings size={20} />, url: "/setting" },
   ];
 
   useEffect(() => {
-    // Auto open submenu if current path matches any children
     navItems.forEach(item => {
       if (item.children?.some(child => location.pathname.startsWith(child.url))) {
         setOpenSubMenu(item.name);
@@ -148,46 +38,56 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
     });
   }, [location.pathname]);
 
+  const isActive = (url: string) => location.pathname === url;
+
   return (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-20'}   h-screen bg-gray-900 text-white transition-all duration-300 ease-in-out z-20`}>
-      {/* Header */}
+    <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} fixed top-0 left-0 h-screen bg-gray-900 text-white shadow-lg transition-all duration-300 z-30 flex flex-col`}
+      style={{ borderTopRightRadius: 18, borderBottomRightRadius: 18 }}
+    >
+      {/* Logo + Toggle */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
         {sidebarOpen ? (
-          <div className="flex items-center space-x-2">
-            <Zap className="h-6 w-6 text-blue-500" />
-            <span className="font-semibold text-lg">AdminShop</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo192.png" alt="Logo" className="h-8 w-8 rounded-full shadow" />
+            <span className="font-semibold text-lg tracking-wide">AdminShop</span>
           </div>
         ) : (
-          <Zap className="h-6 w-6 text-blue-500 mx-auto" />
+          <img src="/logo192.png" alt="Logo" className="h-8 w-8 rounded-full shadow mx-auto" />
         )}
         <button onClick={toggleSidebar} className="p-1 rounded-md hover:bg-gray-800">
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
-
       {/* Navigation */}
-      <nav className="mt-5 px-2 space-y-1">
+      <nav className="mt-5 px-2 space-y-1 flex-1">
         {navItems.map((item, index) => {
           const isOpen = openSubMenu === item.name;
-
+          const active = isActive(item.url) || (item.children && item.children.some(child => isActive(child.url)));
           if (!item.children) {
             return (
               <a
                 key={index}
                 href={item.url}
-                className="flex items-center gap-3 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition"
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                  ${active ? 'bg-blue-600 text-white shadow' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}
+                  ${sidebarOpen ? '' : 'justify-center'}
+                `}
+                style={{ marginBottom: 2 }}
               >
                 {item.icon}
                 {sidebarOpen && <span>{item.name}</span>}
               </a>
             );
           }
-
           return (
             <div key={index} className="space-y-1">
               <button
                 onClick={() => setOpenSubMenu(isOpen ? null : item.name)}
-                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition"
+                className={`flex items-center justify-between w-full px-4 py-2 text-sm rounded-lg font-medium transition-all
+                  ${active ? 'bg-blue-600 text-white shadow' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}
+                  ${sidebarOpen ? '' : 'justify-center'}
+                `}
+                style={{ marginBottom: 2 }}
               >
                 <div className="flex items-center gap-3">
                   {item.icon}
@@ -201,9 +101,8 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
                     <a
                       key={cIdx}
                       href={child.url}
-                      className={`block text-sm ${
-                        location.pathname === child.url ? 'text-white font-medium' : 'text-gray-400 hover:text-white'
-                      } transition`}
+                      className={`block text-sm rounded px-3 py-1 transition
+                        ${isActive(child.url) ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
                     >
                       {child.name}
                     </a>
@@ -214,7 +113,14 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
           );
         })}
       </nav>
-    </div>
+      {/* Bottom: Đăng xuất */}
+      <div className="px-2 pb-4 mt-auto">
+        <button className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-sm text-red-500 hover:bg-gray-800 hover:text-red-400 transition">
+          <LogOut size={18} />
+          {sidebarOpen && <span>Đăng xuất</span>}
+        </button>
+      </div>
+    </aside>
   );
 };
 

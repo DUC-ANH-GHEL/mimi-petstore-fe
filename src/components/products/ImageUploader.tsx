@@ -11,7 +11,6 @@ interface ImageUploaderProps {
 const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProps) => {
   const [images, setImages] = useState<ImageItem[]>([...initialImages]);
   const [previews, setPreviews] = useState<string[]>([]);
-  console.log("images",images)
 
   useEffect(() => {
     setImages([...initialImages])
