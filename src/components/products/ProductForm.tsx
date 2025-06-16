@@ -13,6 +13,7 @@ import LoadingButton from '../common/LoadingButton';
 import LoadingOverlay from '../common/LoadingOverlay';
 import { Layers, BadgeCheck, Tag, DollarSign, Info, Ruler, Weight, Maximize2, Percent, ArrowLeft, Save, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { logo_url } from '../../config/api';
 
 interface ProductFormProps {
   onSuccess?: () => void;
@@ -135,7 +136,10 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       try {
         const response = await getProductById(id);
         const imageList = await getProductImageByProductId(id);
-        const listImage = imageList.map(element => element.image_url);
+        let listImage = imageList.map(element => element.image_url);
+        if (!listImage || listImage.length === 0) {
+          listImage = [logo_url];
+        }
         const fullData = { ...response, images: listImage };
         setProduct(fullData);
         setFormData(fullData);
@@ -213,6 +217,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
   // Xử lý cập nhật hình ảnh
   const handleImagesUpdate = (files: File[], images: string[]) => {
+    // Chỉ update nếu images thực sự khác và không phải là lần đầu bị rỗng
+    if (images.length === 0 && formData.images.length > 0) return;
     setFormData(prev => {
       const prevFile = (prev.images ?? []).filter(img => typeof img === 'string') as string[];
       const same = prevFile.length === images.length && prevFile.every((f, i) => f === images[i]);
@@ -272,6 +278,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     }
   };
 
+  console.log('ImageUploader initialImages:', formData.images);
+
   return (
     <>
       <LoadingOverlay isLoading={loading} text="Đang tải dữ liệu sản phẩm..." />
@@ -298,11 +306,13 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             {/* Upload ảnh */}
             <div>
               <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
-              <ImageUploader
-                key={formData.images?.join(',')}
-                initialImages={formData.images}
-                onImagesUpdate={handleImagesUpdate}
-              />
+              {!loading && (
+                <ImageUploader
+                  key={formData.images?.join(',') + loading}
+                  initialImages={formData.images}
+                  onImagesUpdate={handleImagesUpdate}
+                />
+              )}
             </div>
             {/* Thông tin chính */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
