@@ -11,6 +11,8 @@ import { useToast } from '../Toast';
 import { validateForm, ValidationRules, commonRules } from '../../utils/validation';
 import LoadingButton from '../common/LoadingButton';
 import LoadingOverlay from '../common/LoadingOverlay';
+import { Layers, BadgeCheck, Tag, DollarSign, Info, Ruler, Weight, Maximize2, Percent, ArrowLeft, Save, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ProductFormProps {
   onSuccess?: () => void;
@@ -273,337 +275,103 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   };
 
   return (
-    <>
-      <LoadingOverlay 
-        isLoading={isSubmitting} 
-        text={id ? "Đang cập nhật sản phẩm..." : "Đang tạo sản phẩm..."} 
-      />
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md max-w-3xl mx-auto">
-        {/* Tên sản phẩm */}
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Tên sản phẩm <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            ref={nameInputRef}
-            className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Nhập tên sản phẩm"
-            maxLength={100}
-          />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-        </div>
-
-        {/* Mô tả sản phẩm */}
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-            Mô tả sản phẩm
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500 resize-none h-32"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Nhập mô tả chi tiết về sản phẩm"
-          />
-        </div>
-
-        {/* SKU, Giá, Trạng thái - flex trên desktop */}
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Mã SKU */}
-          <div>
-            <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
-              Mã SKU <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="sku"
-              name="sku"
-              className={`w-full border ${errors.sku ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.sku}
-              onChange={handleInputChange}
-              placeholder="PROD-XXX"
-            />
-            {errors.sku && <p className="text-red-500 text-sm mt-1">{errors.sku}</p>}
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-pink-50 py-8 px-2 md:px-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 mb-8 flex items-center gap-6">
+          <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg">
+            <Layers size={32} className="text-white" />
           </div>
-
-          {/* Giá bán */}
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-              Giá bán <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              className={`w-full border ${errors.price ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.price}
-              onChange={handleInputChange}
-              min="0"
-            />
-            {formData.price > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formatPrice(formData.price)}</p>
-            )}
-          </div>
-
-          {/* % affiliate */}
-          <div>
-            <label htmlFor="affiliate" className="block text-sm font-medium text-gray-700 mb-1">
-              % Affiliate <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="affiliate"
-              name="affiliate"
-              className={`w-full border ${errors.affiliate ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.affiliate}
-              onChange={handleInputChange}
-              min="0"
-              max="100"
-            />
-            {formData.affiliate > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formData.affiliate}%</p>
-            )}
-            {errors.affiliate && <p className="text-red-500 text-sm mt-1">{errors.affiliate}</p>}
-          </div>
-
-          {/* Trạng thái hiển thị */}
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng thái hiển thị
-            </label>
-            <select
-              id="status"
-              name="status"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              <option value="true">Đang bán</option>
-              <option value="false">Ẩn</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Kích thước và cân nặng */}
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Weight */}
-          <div>
-            <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
-              Cân nặng <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="weight"
-              name="weight"
-              className={`w-full border ${errors.weight ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.weight}
-              onChange={handleInputChange}
-              min="0"
-              placeholder="Cân nặng (gram)"
-            />
-            {formData.weight > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formData.weight} g</p>
-            )}
-            {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
-          </div>
-
-          {/* Chiều dài */}
-          <div>
-            <label htmlFor="length" className="block text-sm font-medium text-gray-700 mb-1">
-              Chiều dài <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="length"
-              name="length"
-              className={`w-full border ${errors.length ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.length}
-              onChange={handleInputChange}
-              min="0"
-              placeholder="Chiều dài (cm)"
-            />
-            {formData.length > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formData.length} cm</p>
-            )}
-            {errors.length && <p className="text-red-500 text-sm mt-1">{errors.length}</p>}
-          </div>
-
-          {/* Chiều rộng */}
-          <div>
-            <label htmlFor="width" className="block text-sm font-medium text-gray-700 mb-1">
-              Chiều rộng <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="width"
-              name="width"
-              className={`w-full border ${errors.width ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.width}
-              onChange={handleInputChange}
-              min="0"
-              placeholder="Chiều rộng (cm)"
-            />
-            {formData.width > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formData.width} cm</p>
-            )}
-            {errors.width && <p className="text-red-500 text-sm mt-1">{errors.width}</p>}
-          </div>
-
-          {/* Chiều cao */}
-          <div>
-            <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">
-              Chiều cao <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="height"
-              name="height"
-              className={`w-full border ${errors.height ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.height}
-              onChange={handleInputChange}
-              min="0"
-              placeholder="Chiều cao (cm)"
-            />
-            {formData.height > 0 && (
-              <p className="text-gray-500 text-sm mt-1">{formData.height} cm</p>
-            )}
-            {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
-          </div>
-        </div>
-
-        {/* Tồn kho và Danh mục */}
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Tồn kho */}
-          <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-              Tồn kho
-            </label>
-            <input
-              type="number"
-              id="stock"
-              name="stock"
-              className={`w-full border ${errors.stock ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.stock}
-              onChange={handleInputChange}
-              min="0"
-            />
-            {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
-          </div>
-
-          {/* Danh mục sản phẩm */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Danh mục sản phẩm
-            </label>
-            <select
-              id="category"
-              name="category_id"
-              className={`w-full border ${errors.category_id ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500`}
-              value={formData.category_id}
-              onChange={handleInputChange}
-            >
-              <option value="">-- Chọn danh mục --</option>
-              <option value="1">Ty xy lanh</option>
-              <option value="2">Van thủy lực</option>
-              <option value="3">Trang gạt</option>
-            </select>
-            {errors.category_id && <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>}
-          </div>
-        </div>
-
-        {/* Upload ảnh sản phẩm */}
-        <div className="mb-4">
-          <ImageUploader onImagesUpdate={handleImagesUpdate} initialImages={formData.images} />
-        </div>
-
-        {/* Thông số kỹ thuật */}
-        <div className="mb-4">
-          <SpecificationFields specs={formData.specs} onSpecsUpdate={handleSpecsUpdate} />
-        </div>
-
-        {/* SEO Section */}
-        <div className="mb-4 border-t border-gray-200 pt-4 mt-6">
-          <h3 className="font-medium text-gray-700 mb-3">Thông tin SEO</h3>
-
-          {/* Slug */}
-          <div className="mb-4">
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
-              Slug URL
-            </label>
-            <input
-              type="text"
-              id="slug"
-              name="slug"
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500"
-              value={formData.slug}
-              onChange={handleInputChange}
-              placeholder="ten-san-pham"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              URL: example.com/san-pham/{formData.slug || 'ten-san-pham'}
-            </p>
-          </div>
-
-          {/* Meta Title & Description */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                Meta Title
-              </label>
-              <input
-                type="text"
-                id="metaTitle"
-                name="metaTitle"
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500"
-                value={formData.metaTitle}
-                onChange={handleInputChange}
-                placeholder="Tiêu đề trang cho SEO"
-              />
-            </div>
-            <div>
-              <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-1">
-                Meta Description
-              </label>
-              <input
-                type="text"
-                id="metaDescription"
-                name="metaDescription"
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-teal-500 focus:border-teal-500"
-                value={formData.metaDescription}
-                onChange={handleInputChange}
-                placeholder="Mô tả ngắn cho kết quả tìm kiếm"
-              />
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-700 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{id ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}</h1>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-500">SKU: {formData.sku}</span>
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow ${formData.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
+                <BadgeCheck size={16} className={formData.is_active ? 'text-green-500' : 'text-gray-400'} />
+                {formData.is_active ? 'Đang bán' : 'Ẩn'}
+              </span>
             </div>
           </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end space-x-3 mt-6">
-          <LoadingButton
-            type="button"
-            variant="secondary"
-            onClick={handleCancel}
-            disabled={isSubmitting}
-          >
-            Huỷ
-          </LoadingButton>
-          <LoadingButton
-            type="submit"
-            variant="primary"
-            isLoading={isSubmitting}
-            loadingText={id ? "Đang cập nhật..." : "Đang tạo sản phẩm..."}
-          >
-            {id ? "Cập nhật" : "Tạo sản phẩm"}
-          </LoadingButton>
-        </div>
-      </form>
-    </>
+        </motion.div>
+        {/* Form */}
+        <motion.form initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
+          {/* Upload ảnh */}
+          <div>
+            <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
+            <ImageUploader initialImages={formData.images} onImagesUpdate={handleImagesUpdate} />
+          </div>
+          {/* Thông tin chính */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Tên sản phẩm</label>
+              <input ref={nameInputRef} name="name" value={formData.name} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Nhập tên sản phẩm" />
+              {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Tag size={18} className="text-blue-400" /> Mã SKU</label>
+              <input name="sku" value={formData.sku} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="SKU" />
+              {errors.sku && <div className="text-red-500 text-xs mt-1">{errors.sku}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><DollarSign size={18} className="text-orange-400" /> Giá bán</label>
+              <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-orange-400 shadow-sm" placeholder="Giá bán" />
+              {errors.price && <div className="text-red-500 text-xs mt-1">{errors.price}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Percent size={18} className="text-green-400" /> Affiliate (%)</label>
+              <input type="number" name="affiliate" value={formData.affiliate} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Affiliate" />
+              {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Layers size={18} className="text-pink-400" /> Danh mục</label>
+              <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm">
+                <option value={0}>Chọn danh mục</option>
+                {/* TODO: map categories */}
+              </select>
+              {errors.category_id && <div className="text-red-500 text-xs mt-1">{errors.category_id}</div>}
+            </div>
+          </div>
+          {/* Mô tả */}
+          <div>
+            <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Mô tả</label>
+            <textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Mô tả sản phẩm" rows={3} />
+            {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
+          </div>
+          {/* Thông số kỹ thuật */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Weight size={18} className="text-blue-400" /> Cân nặng (g)</label>
+              <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Cân nặng" />
+              {errors.weight && <div className="text-red-500 text-xs mt-1">{errors.weight}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-pink-400" /> Chiều dài (cm)</label>
+              <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm" placeholder="Chiều dài" />
+              {errors.length && <div className="text-red-500 text-xs mt-1">{errors.length}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-green-400" /> Chiều rộng (cm)</label>
+              <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Chiều rộng" />
+              {errors.width && <div className="text-red-500 text-xs mt-1">{errors.width}</div>}
+            </div>
+            <div>
+              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-yellow-400" /> Chiều cao (cm)</label>
+              <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-yellow-400 shadow-sm" placeholder="Chiều cao" />
+              {errors.height && <div className="text-red-500 text-xs mt-1">{errors.height}</div>}
+            </div>
+          </div>
+          {/* Nút thao tác */}
+          <div className="flex flex-col md:flex-row justify-end gap-4 mt-8">
+            <button type="button" onClick={handleCancel} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold text-center shadow hover:from-gray-400 hover:to-gray-500 transition flex items-center justify-center gap-2">
+              <XCircle size={20} /> Hủy
+            </button>
+            <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-center shadow hover:from-blue-600 hover:to-blue-800 transition flex items-center justify-center gap-2">
+              <Save size={20} /> {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
+            </button>
+          </div>
+        </motion.form>
+      </div>
+    </div>
   );
 };
 
