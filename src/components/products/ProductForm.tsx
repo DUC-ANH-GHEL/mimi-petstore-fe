@@ -76,6 +76,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const [errors, setErrors] = useState<FormError>({});
   const [product, setProduct] = useState<ProductFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -130,25 +131,22 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      setLoading(true);
       try {
         const response = await getProductById(id);
         const imageList = await getProductImageByProductId(id);
-        const listImage: string[] = []
-        imageList.forEach(element => {
-          listImage.push(element.image_url)
-        });
-        // Gộp luôn dữ liệu response + imageList 1 lần duy nhất
+        const listImage = imageList.map(element => element.image_url);
         const fullData = { ...response, images: listImage };
         setProduct(fullData);
         setFormData(fullData);
-        setFormDataUpdate({ ... fullData, id: id, listImageCurrent: listImage})
-        console.log("formupdate", formDataUpdate)
+        setFormDataUpdate({ ...fullData, id: id, listImageCurrent: listImage });
       } catch (error) {
-        console.log("Lỗi lấy sản phẩm: ", error);
+        console.log('Lỗi lấy sản phẩm hoặc ảnh: ', error);
+      } finally {
+        setLoading(false);
       }
     };
-  
-    if (id !== null) { // chỉ fetch khi id có giá trị
+    if (id !== null) {
       fetchProduct();
     }
   }, [id]);
@@ -275,103 +273,108 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-pink-50 py-8 px-2 md:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 mb-8 flex items-center gap-6">
-          <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg">
-            <Layers size={32} className="text-white" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-700 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{id ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}</h1>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500">SKU: {formData.sku}</span>
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow ${formData.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
-                <BadgeCheck size={16} className={formData.is_active ? 'text-green-500' : 'text-gray-400'} />
-                {formData.is_active ? 'Đang bán' : 'Ẩn'}
-              </span>
+    <>
+      <LoadingOverlay isLoading={loading} text="Đang tải dữ liệu sản phẩm..." />
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-pink-50 py-8 px-2 md:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 mb-8 flex items-center gap-6">
+            <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg">
+              <Layers size={32} className="text-white" />
             </div>
-          </div>
-        </motion.div>
-        {/* Form */}
-        <motion.form initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
-          {/* Upload ảnh */}
-          <div>
-            <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
-            <ImageUploader initialImages={formData.images} onImagesUpdate={handleImagesUpdate} />
-          </div>
-          {/* Thông tin chính */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-700 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{id ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}</h1>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500">SKU: {formData.sku}</span>
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow ${formData.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
+                  <BadgeCheck size={16} className={formData.is_active ? 'text-green-500' : 'text-gray-400'} />
+                  {formData.is_active ? 'Đang bán' : 'Ẩn'}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+          {/* Form */}
+          <motion.form initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
+            {/* Upload ảnh */}
             <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Tên sản phẩm</label>
-              <input ref={nameInputRef} name="name" value={formData.name} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Nhập tên sản phẩm" />
-              {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
+              <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
+              <ImageUploader initialImages={formData.images} onImagesUpdate={handleImagesUpdate} />
             </div>
+            {/* Thông tin chính */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Tên sản phẩm</label>
+                <input ref={nameInputRef} name="name" value={formData.name} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Nhập tên sản phẩm" />
+                {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Tag size={18} className="text-blue-400" /> Mã SKU</label>
+                <input name="sku" value={formData.sku} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="SKU" />
+                {errors.sku && <div className="text-red-500 text-xs mt-1">{errors.sku}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><DollarSign size={18} className="text-orange-400" /> Giá bán</label>
+                <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-orange-400 shadow-sm" placeholder="Giá bán" />
+                {errors.price && <div className="text-red-500 text-xs mt-1">{errors.price}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Percent size={18} className="text-green-400" /> Affiliate (%)</label>
+                <input type="number" name="affiliate" value={formData.affiliate} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Affiliate" />
+                {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Layers size={18} className="text-pink-400" /> Danh mục</label>
+                <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm">
+                  <option value={0}>Chọn danh mục</option>
+                  <option value={1}>Ty xy lanh</option>
+                  <option value={2}>Van thủy lực</option>
+                  <option value={3}>Trang gạt</option>
+                </select>
+                {errors.category_id && <div className="text-red-500 text-xs mt-1">{errors.category_id}</div>}
+              </div>
+            </div>
+            {/* Mô tả */}
             <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Tag size={18} className="text-blue-400" /> Mã SKU</label>
-              <input name="sku" value={formData.sku} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="SKU" />
-              {errors.sku && <div className="text-red-500 text-xs mt-1">{errors.sku}</div>}
+              <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Mô tả</label>
+              <textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Mô tả sản phẩm" rows={3} />
+              {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
             </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><DollarSign size={18} className="text-orange-400" /> Giá bán</label>
-              <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-orange-400 shadow-sm" placeholder="Giá bán" />
-              {errors.price && <div className="text-red-500 text-xs mt-1">{errors.price}</div>}
+            {/* Thông số kỹ thuật */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Weight size={18} className="text-blue-400" /> Cân nặng (g)</label>
+                <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Cân nặng" />
+                {errors.weight && <div className="text-red-500 text-xs mt-1">{errors.weight}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-pink-400" /> Chiều dài (cm)</label>
+                <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm" placeholder="Chiều dài" />
+                {errors.length && <div className="text-red-500 text-xs mt-1">{errors.length}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-green-400" /> Chiều rộng (cm)</label>
+                <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Chiều rộng" />
+                {errors.width && <div className="text-red-500 text-xs mt-1">{errors.width}</div>}
+              </div>
+              <div>
+                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-yellow-400" /> Chiều cao (cm)</label>
+                <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-yellow-400 shadow-sm" placeholder="Chiều cao" />
+                {errors.height && <div className="text-red-500 text-xs mt-1">{errors.height}</div>}
+              </div>
             </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Percent size={18} className="text-green-400" /> Affiliate (%)</label>
-              <input type="number" name="affiliate" value={formData.affiliate} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Affiliate" />
-              {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
+            {/* Nút thao tác */}
+            <div className="flex flex-col md:flex-row justify-end gap-4 mt-8">
+              <button type="button" onClick={handleCancel} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold text-center shadow hover:from-gray-400 hover:to-gray-500 transition flex items-center justify-center gap-2">
+                <XCircle size={20} /> Hủy
+              </button>
+              <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-center shadow hover:from-blue-600 hover:to-blue-800 transition flex items-center justify-center gap-2">
+                <Save size={20} /> {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
+              </button>
             </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Layers size={18} className="text-pink-400" /> Danh mục</label>
-              <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm">
-                <option value={0}>Chọn danh mục</option>
-                {/* TODO: map categories */}
-              </select>
-              {errors.category_id && <div className="text-red-500 text-xs mt-1">{errors.category_id}</div>}
-            </div>
-          </div>
-          {/* Mô tả */}
-          <div>
-            <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Mô tả</label>
-            <textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Mô tả sản phẩm" rows={3} />
-            {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
-          </div>
-          {/* Thông số kỹ thuật */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Weight size={18} className="text-blue-400" /> Cân nặng (g)</label>
-              <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Cân nặng" />
-              {errors.weight && <div className="text-red-500 text-xs mt-1">{errors.weight}</div>}
-            </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-pink-400" /> Chiều dài (cm)</label>
-              <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm" placeholder="Chiều dài" />
-              {errors.length && <div className="text-red-500 text-xs mt-1">{errors.length}</div>}
-            </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-green-400" /> Chiều rộng (cm)</label>
-              <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Chiều rộng" />
-              {errors.width && <div className="text-red-500 text-xs mt-1">{errors.width}</div>}
-            </div>
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-yellow-400" /> Chiều cao (cm)</label>
-              <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-yellow-400 shadow-sm" placeholder="Chiều cao" />
-              {errors.height && <div className="text-red-500 text-xs mt-1">{errors.height}</div>}
-            </div>
-          </div>
-          {/* Nút thao tác */}
-          <div className="flex flex-col md:flex-row justify-end gap-4 mt-8">
-            <button type="button" onClick={handleCancel} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold text-center shadow hover:from-gray-400 hover:to-gray-500 transition flex items-center justify-center gap-2">
-              <XCircle size={20} /> Hủy
-            </button>
-            <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-center shadow hover:from-blue-600 hover:to-blue-800 transition flex items-center justify-center gap-2">
-              <Save size={20} /> {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
-            </button>
-          </div>
-        </motion.form>
+          </motion.form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

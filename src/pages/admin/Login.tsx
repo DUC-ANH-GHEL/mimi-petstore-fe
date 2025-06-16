@@ -89,10 +89,12 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect') || '/admin/';
   
-      if (!formData.rememberMe) {
-        const token = localStorage.getItem('adminToken');
+      if (formData.rememberMe) {
+        localStorage.setItem('adminToken', result.token);
+        sessionStorage.removeItem('adminToken');
+      } else {
+        sessionStorage.setItem('adminToken', result.token);
         localStorage.removeItem('adminToken');
-        sessionStorage.setItem('adminToken', token || '');
       }
   
       window.location.href = redirectUrl;
