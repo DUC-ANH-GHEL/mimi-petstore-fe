@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Package, Users, Tag, MessageSquare, BarChart3, Settings, ShoppingCart, X, Menu, Zap, ChevronDown, LogOut } from 'lucide-react';
+import { logo_url } from '../../config/api';
 
 interface SidebarProps {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
 }
+
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
 
 const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
@@ -48,11 +51,11 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
         {sidebarOpen ? (
           <div className="flex items-center gap-2">
-            <img src="/logo192.png" alt="Logo" className="h-8 w-8 rounded-full shadow" />
-            <span className="font-semibold text-lg tracking-wide">AdminShop</span>
+            <img src={logo_url} alt="Logo" className="h-8 w-8 rounded-full shadow" />
+            <span className="font-semibold text-lg tracking-wide">KTM Shop</span>
           </div>
         ) : (
-          <img src="/logo192.png" alt="Logo" className="h-8 w-8 rounded-full shadow mx-auto" />
+          <img src={logo_url} alt="Logo" className="h-8 w-8 rounded-full shadow mx-auto" />
         )}
         <button onClick={toggleSidebar} className="p-1 rounded-md hover:bg-gray-800">
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../components/Toast/ToastContext';
 
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
+
 const ProductList = () => {
   const { addToCart } = useCart();
   const { showToast } = useToast ? useToast() : { showToast: () => {} };
@@ -31,7 +33,7 @@ const ProductList = () => {
       description: 'Xi lanh thủy lực 2 chiều, hành trình 200mm, đường kính 50mm',
       price: 2500000,
       category: 'cylinder',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 2,
@@ -39,7 +41,7 @@ const ProductList = () => {
       description: 'Bơm thủy lực piston, công suất 5HP, áp suất 200 bar',
       price: 8500000,
       category: 'pump',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 3,
@@ -47,7 +49,7 @@ const ProductList = () => {
       description: 'Van điều khiển thủy lực 4/3, điện từ, 24V',
       price: 3500000,
       category: 'valve',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 4,
@@ -55,7 +57,7 @@ const ProductList = () => {
       description: 'Ống thủy lực cao áp, đường kính 1 inch, chịu áp 300 bar',
       price: 1200000,
       category: 'accessories',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 5,
@@ -63,7 +65,7 @@ const ProductList = () => {
       description: 'Xi lanh thủy lực 1 chiều, hành trình 150mm, đường kính 40mm',
       price: 1800000,
       category: 'cylinder',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 6,
@@ -71,7 +73,7 @@ const ProductList = () => {
       description: 'Bơm thủy lực bánh răng, công suất 3HP, áp suất 150 bar',
       price: 4500000,
       category: 'pump',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 7,
@@ -79,7 +81,7 @@ const ProductList = () => {
       description: 'Van an toàn thủy lực, điều chỉnh áp suất 0-300 bar',
       price: 2800000,
       category: 'valve',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 8,
@@ -87,7 +89,7 @@ const ProductList = () => {
       description: 'Bộ lọc dầu thủy lực, lọc 10 micron, lưu lượng 100L/phút',
       price: 950000,
       category: 'accessories',
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     }
   ];
 

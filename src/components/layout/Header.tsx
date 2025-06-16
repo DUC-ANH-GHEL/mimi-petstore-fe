@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Bell, Moon, Sun, ChevronDown, LogOut, KeyRound } from 'lucide-react';
 import { FaShoppingCart, FaTrash } from 'react-icons/fa';
 import { useCart } from '../../contexts/CartContext';
+import { logo_url } from '../../config/api';
 
 interface HeaderProps {
   darkMode: boolean;
@@ -43,8 +44,8 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
     >
       <div className="h-16 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/logo192.png" alt="Logo" className="h-8 w-8 rounded-full shadow" />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-wide">AdminShop</h1>
+          <img src={logo_url} alt="Logo" className="h-8 w-8 rounded-full shadow" />
+          {/* <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-wide">AdminShop</h1> */}
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative group">
@@ -64,7 +65,7 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
               onClick={() => setDropdownOpen((v) => !v)}
             >
               <img
-                src="/api/placeholder/32/32"
+                src={logo_url}
                 alt="Admin avatar"
                 className="h-8 w-8 rounded-full border-2 border-blue-400 shadow"
               />

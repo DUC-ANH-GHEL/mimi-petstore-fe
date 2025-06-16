@@ -4,6 +4,9 @@ import { FaShoppingCart, FaHeart, FaShare, FaPhoneAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../components/Toast/ToastContext';
+import { logo_url } from '../../config/api';
+
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -21,10 +24,10 @@ const ProductDetail = () => {
     price: 2500000,
     category: 'cylinder',
     images: [
-      'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg',
-      'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg',
-      'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg',
-      'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg',
+      IMAGE_DEFAULT_URL,
+      IMAGE_DEFAULT_URL,
+      IMAGE_DEFAULT_URL,
+      IMAGE_DEFAULT_URL,
     ],
     specifications: [
       { label: 'Hành trình', value: '200mm' },
@@ -49,19 +52,19 @@ const ProductDetail = () => {
       id: 2,
       name: 'Xi lanh thủy lực 1 chiều',
       price: 1800000,
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 3,
       name: 'Xi lanh thủy lực mini',
       price: 1200000,
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
     {
       id: 4,
       name: 'Xi lanh thủy lực công nghiệp',
       price: 3500000,
-      image: 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg'
+      image: IMAGE_DEFAULT_URL
     },
   ];
 

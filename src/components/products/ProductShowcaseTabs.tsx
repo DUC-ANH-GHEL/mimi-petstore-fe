@@ -6,6 +6,8 @@ import './ProductShowcaseTabs.css';
 import { FaShoppingCart } from 'react-icons/fa';
 import { useCart } from '../../contexts/CartContext';
 
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
+
 function ProductShowcaseTabs() {
   const [modalImage, setModalImage] = useState(null);
   const { addToCart } = useCart();
@@ -16,21 +18,21 @@ function ProductShowcaseTabs() {
   const products = [
     {
       title: "Xy lanh giữa",
-      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538306/2_sxq2wa.jpg",
+      image: IMAGE_DEFAULT_URL,
       price: "1.950.000đ",
       aos: "fade-left",
       bg: '#0a2261'
     },
     {
       title: "Xy lanh nghiêng",
-      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538307/3_nxbqyo.jpg",
+      image: IMAGE_DEFAULT_URL,
       price: "1.950.000đ",
       aos: "fade-down",
       bg: '#0a2261'
     },
     {
       title: "Xy lanh ủi",
-      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538307/4_rj8cv2.jpg",
+      image: IMAGE_DEFAULT_URL,
       price: "2.200.000đ",
       aos: "fade-right",
       bg: '#ffe04b'

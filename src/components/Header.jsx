@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { HiMenu, HiX } from 'react-icons/hi';
 
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
+
 const Header = () => {
   const { cart, removeFromCart, clearCart } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
@@ -55,7 +57,7 @@ const Header = () => {
           <Link to="/" className="flex items-center gap-4">
             <div className="relative">
               <img 
-                src="https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg" 
+                src={IMAGE_DEFAULT_URL} 
                 alt="KTM Logo" 
                 className="h-16 w-16 object-contain"
               />
