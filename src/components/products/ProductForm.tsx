@@ -298,7 +298,11 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             {/* Upload ảnh */}
             <div>
               <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
-              <ImageUploader initialImages={formData.images} onImagesUpdate={handleImagesUpdate} />
+              <ImageUploader
+                key={formData.images?.join(',')}
+                initialImages={formData.images}
+                onImagesUpdate={handleImagesUpdate}
+              />
             </div>
             {/* Thông tin chính */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
