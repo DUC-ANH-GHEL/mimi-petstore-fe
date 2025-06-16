@@ -18,21 +18,21 @@ function ProductShowcaseTabs() {
   const products = [
     {
       title: "Xy lanh giữa",
-      image: IMAGE_DEFAULT_URL,
+      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538306/2_sxq2wa.jpg",
       price: "1.950.000đ",
       aos: "fade-left",
       bg: '#0a2261'
     },
     {
       title: "Xy lanh nghiêng",
-      image: IMAGE_DEFAULT_URL,
+      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538307/3_nxbqyo.jpg",
       price: "1.950.000đ",
       aos: "fade-down",
       bg: '#0a2261'
     },
     {
       title: "Xy lanh ủi",
-      image: IMAGE_DEFAULT_URL,
+      image: "https://res.cloudinary.com/diwxfpt92/image/upload/f_auto,q_auto/v1747538307/4_rj8cv2.jpg",
       price: "2.200.000đ",
       aos: "fade-right",
       bg: '#ffe04b'

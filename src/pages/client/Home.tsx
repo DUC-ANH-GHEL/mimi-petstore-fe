@@ -7,6 +7,7 @@ import SwiperCore, { Autoplay, Navigation, Pagination } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { Wrench, Ruler, BellRing, Truck, ChevronRight, PhoneCall, Users, Star } from 'lucide-react';
 
 // Initialize Swiper modules
 SwiperCore.use([Autoplay, Navigation, Pagination]);
@@ -83,8 +84,8 @@ const partners: Partner[] = [
 
 const Home = () => {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-[#fafbfc]">
+      {/* Hero Section (Swiper + motion như cũ) */}
       <section className="relative h-[600px] bg-gradient-to-r from-gray-900 to-gray-800">
         <Swiper
           navigation
@@ -132,174 +133,142 @@ const Home = () => {
               </div>
             </div>
           </SwiperSlide>
-          {/* Thêm các slide khác */}
+          {/* Thêm các slide khác nếu muốn */}
         </Swiper>
       </section>
 
-      {/* Product Showcase Tabs */}
-      <ProductShowcaseTabs />
-
-      {/* Hydraulic Blade Products */}
-      <HydraulicBladeProducts />
-
-      {/* Features Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaTruck className="text-2xl text-teal-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Giao hàng toàn quốc</h3>
-              <p className="text-gray-600">Miễn phí vận chuyển cho đơn hàng từ 5 triệu</p>
+      {/* Dãy icon vàng */}
+      <section className="bg-white py-6">
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-6 md:gap-12">
+          <div className="flex flex-col items-center text-center w-32">
+            <div className="bg-yellow-400 rounded-full w-14 h-14 flex items-center justify-center mb-2 shadow-lg">
+              <Wrench size={32} className="text-white" />
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaTools className="text-2xl text-teal-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Bảo hành chính hãng</h3>
-              <p className="text-gray-600">Bảo hành 12 tháng cho tất cả sản phẩm</p>
+            <span className="font-semibold text-sm">Lắp chuẩn từng Đời máy</span>
+          </div>
+          <div className="flex flex-col items-center text-center w-32">
+            <div className="bg-yellow-400 rounded-full w-14 h-14 flex items-center justify-center mb-2 shadow-lg">
+              <Ruler size={32} className="text-white" />
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaHeadset className="text-2xl text-teal-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Hỗ trợ 24/7</h3>
-              <p className="text-gray-600">Đội ngũ kỹ thuật viên chuyên nghiệp</p>
+            <span className="font-semibold text-sm">Vật liệu, tháp đúc - ỷ ai mà dày</span>
+          </div>
+          <div className="flex flex-col items-center text-center w-32">
+            <div className="bg-yellow-400 rounded-full w-14 h-14 flex items-center justify-center mb-2 shadow-lg">
+              <BellRing size={32} className="text-white" />
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaShieldAlt className="text-2xl text-teal-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Chất lượng đảm bảo</h3>
-              <p className="text-gray-600">Sản phẩm chính hãng, chất lượng cao</p>
+            <span className="font-semibold text-sm">Báo kênh chỉnh hãng 13 tháng</span>
+          </div>
+          <div className="flex flex-col items-center text-center w-32">
+            <div className="bg-yellow-400 rounded-full w-14 h-14 flex items-center justify-center mb-2 shadow-lg">
+              <Truck size={32} className="text-white" />
             </div>
+            <span className="font-semibold text-sm">Giao lắp tận nơi toàn quốc</span>
           </div>
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Danh Mục Sản Phẩm</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
+      {/* 3 sản phẩm nổi bật */}
+      <section className="py-8">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-6 justify-center">
+          <div className="flex-1 bg-yellow-400 rounded-2xl shadow-lg flex flex-col items-center justify-center p-6 min-h-[220px] hover:scale-105 transition">
+            <img src="https://res.cloudinary.com/diwxfpt92/image/upload/v1750050820/Untitled_nwvhuf.png" alt="Trang gạt" className="h-24 mb-3" />
+            <div className="font-bold text-lg text-white mb-1">TRANG GẠT THUỶ LỰC KTM</div>
+          </div>
+          <div className="flex-1 bg-blue-900 rounded-2xl shadow-lg flex flex-col items-center justify-center p-6 min-h-[220px] hover:scale-105 transition">
+            <img src="https://res.cloudinary.com/diwxfpt92/image/upload/v1749300461/combo_van_3_tay_3_xylanh_nghi%C3%AAng_gi%E1%BB%AFa_%E1%BB%A7i_mgppxh.jpg" alt="Ty xy lanh" className="h-24 mb-3" />
+            <div className="font-bold text-lg text-white mb-1">TY XY LANH I GIỮA / NGHIÊNG / ỦI</div>
+          </div>
+          <div className="flex-1 bg-green-100 rounded-2xl shadow-lg flex flex-col items-center justify-center p-6 min-h-[220px] hover:scale-105 transition">
+            <img src="https://res.cloudinary.com/diwxfpt92/image/upload/v1750050550/ChatGPT_Image_12_08_50_16_thg_6_2025_c1nmwg.png" alt="Combo" className="h-24 mb-3" />
+            <div className="font-bold text-lg text-green-900 mb-1">COMBO TRỌN BỘ LẮP ĐẶT</div>
           </div>
         </div>
       </section>
 
-      {/* Featured Products Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Sản Phẩm Nổi Bật</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+      {/* Bảng báo giá nhanh */}
+      <section className="py-4">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+            <div className="font-bold text-xl mb-2 md:mb-0">BÁO GIÁ NHANH</div>
+            <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-2 rounded-full shadow flex items-center gap-2 transition">
+              <PhoneCall size={20} /> GỌI TƯ VẤN NHANH
+            </button>
           </div>
-          <div className="text-center mt-12">
-            <Link
-              to="/products"
-              className="inline-block bg-teal-500 text-white px-8 py-3 rounded-full hover:bg-teal-600 transition-colors"
-            >
-              Xem tất cả sản phẩm
-            </Link>
+          <table className="w-full mt-2 text-sm">
+            <thead>
+              <tr className="text-gray-500">
+                <th className="text-left py-1">MTM gà</th>
+                <th className="text-left py-1">Giá giá</th>
+                <th className="text-left py-1">KTM</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t">
+                <td>KTM Thuỷ GẠT KG 190</td>
+                <td className="text-yellow-600 font-bold">15,900,000 đ</td>
+                <td>KTM</td>
+              </tr>
+              <tr className="border-t">
+                <td>KTM Thuỷ GẠT KG 250</td>
+                <td className="text-yellow-600 font-bold">16,900,000 đ</td>
+                <td>KTM</td>
+              </tr>
+              <tr className="border-t">
+                <td>KTM Thuỷ GẠT KG 250</td>
+                <td className="text-yellow-600 font-bold">21,500,000 đ</td>
+                <td>KTM</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="text-xs text-gray-500 mt-2">Giá đã bao gồm công lắp tận nơi; chưa bao gồm gọn chuyển (BIG gỗ)</div>
+        </div>
+      </section>
+
+      {/* Block ảnh thực tế + form đăng ký */}
+      <section className="py-8">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+          {/* Ảnh thực tế */}
+          <div className="flex-1 flex gap-4">
+            <img src="/images/real/1.jpg" className="rounded-xl shadow w-32 h-24 object-cover" />
+            <img src="/images/real/2.jpg" className="rounded-xl shadow w-32 h-24 object-cover" />
+            <img src="/images/real/3.jpg" className="rounded-xl shadow w-32 h-24 object-cover" />
+          </div>
+          {/* Form đăng ký */}
+          <div className="w-full md:w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-3">
+            <div className="font-bold text-lg mb-2">ĐĂNG KÝ TƯ VẤN</div>
+            <input className="rounded-lg border px-3 py-2 mb-2" placeholder="Tên" />
+            <input className="rounded-lg border px-3 py-2 mb-2" placeholder="Đại lý/ cty máy" />
+            <input className="rounded-lg border px-3 py-2 mb-2" placeholder="Dòng dùng" />
+            <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg mt-2">ĐĂNG KÝ NGAY</button>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Về KTM Hydraulic</h2>
-              <p className="text-gray-600 mb-6">
-                KTM Hydraulic tự hào là đơn vị cung cấp giải pháp thủy lực toàn diện cho các doanh nghiệp.
-                Với hơn 10 năm kinh nghiệm trong ngành, chúng tôi cam kết mang đến những sản phẩm chất lượng
-                cao và dịch vụ chuyên nghiệp nhất.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
-                  Đội ngũ kỹ thuật viên giàu kinh nghiệm
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
-                  Sản phẩm chính hãng, chất lượng cao
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
-                  Dịch vụ bảo hành, bảo trì chuyên nghiệp
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-teal-500 rounded-full mr-3"></span>
-                  Giá cả cạnh tranh, chính sách hậu mãi tốt
-                </li>
-              </ul>
-            </div>
-            <div className="relative">
-              <img
-                src="/images/about/about-1.jpg"
-                alt="About KTM"
-                className="rounded-lg shadow-xl"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg">
-                <div className="text-4xl font-bold text-teal-500 mb-2">10+</div>
-                <div className="text-gray-600">Năm kinh nghiệm</div>
-              </div>
-            </div>
-          </div>
+      {/* Dãy logo đối tác */}
+      <section className="py-6">
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-center items-center gap-8">
+          <img src="/images/partners/thaco.png" className="h-8" />
+          <img src="/images/partners/kubota.png" className="h-8" />
+          <img src="/images/partners/vinacoma.png" className="h-8" />
+          <img src="/images/partners/mbb.png" className="h-8" />
         </div>
       </section>
 
-      {/* News Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Tin Tức & Sự Kiện</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {news.map((item) => (
-              <NewsCard key={item.id} news={item} />
-            ))}
+      {/* Hội thích cao KTM */}
+      <section className="py-10">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 items-center">
+          <div className="flex-1">
+            <div className="font-bold text-2xl mb-3 flex items-center gap-2"><Users size={28} className="text-blue-700" /> Hội thích cao KTM</div>
+            <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
+              <li>KTM Hysbaluk: Nika máy sẵn, tủi; Đạt ng INổi, Dóng fai Hà Khang Hít Nổi!</li>
+              <li>Gai đã được lắp khắp Hà Nội, Bình Dương</li>
+              <li>Oval 10 gạn Hà Nghộn</li>
+              <li>Trên 1000 máy đã tập dơi toàn quốc</li>
+            </ul>
           </div>
-          <div className="text-center mt-12">
-            <Link
-              to="/news"
-              className="inline-block bg-teal-500 text-white px-8 py-3 rounded-full hover:bg-teal-600 transition-colors"
-            >
-              Xem tất cả tin tức
-            </Link>
+          <div className="flex-1 flex justify-center">
+            <img src="/images/real/staff.jpg" className="rounded-2xl shadow-xl w-80 object-cover" />
           </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Đối Tác</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {partners.map((partner) => (
-              <PartnerLogo key={partner.id} partner={partner} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-teal-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Bạn cần tư vấn?</h2>
-          <p className="text-xl mb-8">
-            Hãy liên hệ với chúng tôi để được tư vấn miễn phí về giải pháp thủy lực
-          </p>
-          <Link
-            to="/contact"
-            className="inline-block bg-white text-teal-600 px-8 py-3 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            Liên hệ ngay
-          </Link>
         </div>
       </section>
     </div>

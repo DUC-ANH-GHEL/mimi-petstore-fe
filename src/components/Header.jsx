@@ -39,9 +39,9 @@ const Header = () => {
               <FaPhoneAlt className="text-blue-300" />
               <span>Hotline: 0966 201 140</span>
             </a>
-            <a href="mailto:kythuatmayktm@gmail.com" className="hover:text-blue-200 transition-colors">
+            {/* <a href="mailto:kythuatmayktm@gmail.com" className="hover:text-blue-200 transition-colors">
               Email: kythuatmayktm@gmail.com
-            </a>
+            </a> */}
           </div>
           <div className="flex items-center gap-4">
             <Link to="/about" className="hover:text-blue-200 transition-colors">Giới thiệu</Link>
