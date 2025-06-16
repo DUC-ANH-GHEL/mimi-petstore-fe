@@ -1,6 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PencilIcon } from '@heroicons/react/24/outline';
+import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ProductsTable = ({ 
   products, 
@@ -98,10 +99,13 @@ const navigate = useNavigate();
       {/* Mobile Card List */}
       <div className="md:hidden grid grid-cols-1 gap-4">
         {products?.map((product) => (
-          <div
+          <motion.div
             key={product.id}
             className="bg-white rounded-xl shadow p-4 flex gap-4 items-center hover:shadow-lg transition cursor-pointer"
             onClick={() => handleRowClick(product.id)}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
             <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
               {product.image ? (
@@ -124,25 +128,23 @@ const navigate = useNavigate();
                   onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
                   className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-blue-700 transition"
                 >
-                  <PencilIcon className="h-5 w-5" />
+                  <Pencil className="h-5 w-5" />
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
                   className="flex-1 py-2 rounded-lg bg-red-500 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-red-600 transition"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full bg-white border-separate border-spacing-0">
-          <thead className="bg-gray-50">
+          <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
             <tr>
               <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">
                 <input
@@ -187,12 +189,16 @@ const navigate = useNavigate();
           </thead>
           <tbody>
             {products?.map((product) => (
-              <tr 
+              <motion.tr 
                 key={product.id} 
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => handleRowClick(product.id)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ scale: 1.01 }}
               >
-                <td className="border-b px-4 py-3  hidden md:hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selectedItems.includes(product.id)}
@@ -201,70 +207,33 @@ const navigate = useNavigate();
                   />
                 </td>
                 <td className="border-b px-4 py-3 hidden lg:table-cell">
-                  <div className="w-12 h-12 relative">
-                    {product.image ? (
-                      // <img
-                      //   src={product.image}
-                      //   alt={product.name}
-                      //   layout="fill"
-                      //   objectFit="cover"
-                      //   className="rounded"
-                      // />
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover rounded"
-                      />
-
-                    ) : (
-                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                        <span className="text-gray-400">No img</span>
-                      </div>
-                    )}
-                  </div>
+                  <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
                 </td>
                 <td className="border-b px-4 py-3 sm:table-cell lg:table-cell">
-                  <div>
-                    <div className="font-medium text-gray-900">{product.name}</div>
-                    <div className="text-xs text-gray-500">SKU: {product.sku}</div>
-                  </div>
+                  <div className="font-bold text-gray-900">{product.name}</div>
+                  <div className="text-xs text-gray-500">SKU: {product.sku}</div>
                 </td>
-                <td className="border-b px-4 py-3 text-right font-medium sm:table-cell lg:table-cell">
-                  {formatPrice(product.price)}
+                <td className="border-b px-4 py-3 text-right sm:table-cell lg:table-cell">
+                  <div className="text-orange-600 font-bold">{formatPrice(product.price)}</div>
                 </td>
-                <td className="border-b px-4 py-3 text-right font-medium max-w-xs hidden md:hidden lg:table-cell">
-                  {(product.affiliate)} %
+                <td className="border-b px-4 py-3 text-right hidden md:hidden lg:table-cell">
+                  <div className="text-green-600 font-bold">{product.affiliate} %</div>
                 </td>
                 <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
                   <StatusBadge status={product.is_active} />
                 </td>
                 <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
-                  {product.category?.name || '-'}
+                  <div className="text-gray-700">{product.category?.name || '-'}</div>
                 </td>
-                <td className="border-b px-4 py-3 hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      onClick={(e) => handleEdit(e, product.id)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Sửa sản phẩm"
-                    >
-                      {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg> */}
-                       <PencilIcon className="h-5 w-5 text-gray-600" />
-                    </button>
-                    <button
-                      onClick={(e) => handleEdit(e, product.id)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Xóa sản phẩm"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+                <td className="border-b px-4 py-3 text-center hidden lg:table-cell">
+                  <button
+                    onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
+                    className="py-2 px-4 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-blue-700 transition"
+                  >
+                    <Pencil className="h-5 w-5" />
+                  </button>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
