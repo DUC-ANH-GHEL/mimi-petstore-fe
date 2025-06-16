@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config/api';
 
 export const loginWithApi = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, {  
+    const response = await axios.post(`${API_BASE_URL}/v1/users/users/login`, {  
         email: email,
         password: password, },);
     const token = response.data?.access_token;

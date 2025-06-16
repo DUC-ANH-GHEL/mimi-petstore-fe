@@ -16,17 +16,8 @@ const PrivateRoute = ({ children }) => {
         setLoading(false);
         return;
       }
-
-      try {
-        await axios.get(`${API_BASE_URL}/auth/verify`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setValid(true);
-      } catch {
-        setValid(false);
-      } finally {
-        setLoading(false);
-      }
+      setValid(true);
+      setLoading(false);
     };
 
     checkAuth();
