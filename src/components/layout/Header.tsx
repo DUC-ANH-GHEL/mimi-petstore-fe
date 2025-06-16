@@ -51,53 +51,6 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
             <Bell size={22} className="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer transition" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
           </div>
-          {/* Cart icon */}
-          <div className="relative" ref={cartRef}>
-            <button
-              className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-              onClick={() => setCartOpen((v) => !v)}
-            >
-              <FaShoppingCart size={22} className="text-blue-600" />
-              {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold border-2 border-white">
-                  {cart.reduce((sum, p) => sum + p.quantity, 0)}
-                </span>
-              )}
-            </button>
-            {cartOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn border border-gray-200">
-                <div className="px-4 py-2 font-bold text-lg text-blue-700 border-b border-gray-100">Giỏ hàng</div>
-                {cart.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-gray-500">Chưa có sản phẩm nào</div>
-                ) : (
-                  <>
-                    <ul className="max-h-64 overflow-y-auto divide-y divide-gray-100">
-                      {cart.map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-2 px-4 py-2">
-                          <img src={item.image} alt={item.title} className="w-10 h-10 rounded object-cover border" />
-                          <div className="flex-1">
-                            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">{item.title}</div>
-                            <div className="text-xs text-gray-500">SL: {item.quantity} x {item.price}</div>
-                          </div>
-                          <button className="text-red-500 hover:text-red-700 p-1" onClick={() => removeFromCart(item.title)} title="Xóa">
-                            <FaTrash />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
-                      <span className="font-semibold text-gray-700 dark:text-gray-200">Tổng:</span>
-                      <span className="font-bold text-lg text-orange-500">{total.toLocaleString()} đ</span>
-                    </div>
-                    <div className="px-4 pb-2 flex gap-2">
-                      <button className="flex-1 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Thanh toán</button>
-                      <button className="py-2 px-3 rounded bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition" onClick={clearCart}>Xóa hết</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
