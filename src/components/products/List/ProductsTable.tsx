@@ -94,135 +94,182 @@ const navigate = useNavigate();
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border-separate border-spacing-0">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={(e) => onSelectAll(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 hidden lg:table-cell"
-              />
-            </th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">Ảnh</th>
-            <th 
-              className="sticky top-0 border-b px-4 py-3 text-left cursor-pointer sm:table-cell lg:table-cell"
-              onClick={() => handleSort('name')}
-            >
-              <span className="flex items-center">
-                Tên sản phẩm
-                <SortIcon field="name" />
-              </span>
-            </th>
-            <th 
-              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer sm:table-cell lg:table-cell"
-              onClick={() => handleSort('price')}
-            >
-              <span className="flex items-center justify-end">
-                Giá bán
-                <SortIcon field="price" />
-              </span>
-            </th>
-            <th 
-              className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer hidden md:hidden lg:table-cell"
-              onClick={() => handleSort('affiliate')}
-            >
-              <span className="flex items-center justify-end">
-                Affiliate
-                <SortIcon field="affiliate" />
-              </span>
-            </th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Trạng thái</th>
-            <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Danh mục</th>
-            <th className="sticky top-0 border-b px-4 py-3 text-center hidden lg:table-cell">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products?.map((product) => (
-            <tr 
-              key={product.id} 
-              className="hover:bg-gray-50 cursor-pointer"
-              onClick={() => handleRowClick(product.id)}
-            >
-              <td className="border-b px-4 py-3  hidden md:hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+    <>
+      {/* Mobile Card List */}
+      <div className="md:hidden grid grid-cols-1 gap-4">
+        {products?.map((product) => (
+          <div
+            key={product.id}
+            className="bg-white rounded-xl shadow p-4 flex gap-4 items-center hover:shadow-lg transition cursor-pointer"
+            onClick={() => handleRowClick(product.id)}
+          >
+            <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+              {product.image ? (
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-gray-400">No img</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-gray-900 text-base mb-1 line-clamp-2">{product.name}</div>
+              <div className="text-orange-600 font-bold text-lg mb-1">{formatPrice(product.price)}</div>
+              <div className="flex flex-wrap gap-2 items-center text-xs mb-1">
+                <StatusBadge status={product.is_active} />
+                <span className="bg-blue-50 text-blue-700 rounded px-2 py-0.5">SKU: {product.sku}</span>
+                <span className="bg-green-50 text-green-700 rounded px-2 py-0.5">{product.affiliate} %</span>
+                <span className="bg-gray-50 text-gray-700 rounded px-2 py-0.5">{product.category?.name || '-'}</span>
+              </div>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
+                  className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-blue-700 transition"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
+                  className="flex-1 py-2 rounded-lg bg-red-500 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-red-600 transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="min-w-full bg-white border-separate border-spacing-0">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">
                 <input
                   type="checkbox"
-                  checked={selectedItems.includes(product.id)}
-                  onChange={(e) => onSelectItem(product.id, e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  checked={allSelected}
+                  onChange={(e) => onSelectAll(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 hidden lg:table-cell"
                 />
-              </td>
-              <td className="border-b px-4 py-3 hidden lg:table-cell">
-                <div className="w-12 h-12 relative">
-                  {product.image ? (
-                    // <img
-                    //   src={product.image}
-                    //   alt={product.name}
-                    //   layout="fill"
-                    //   objectFit="cover"
-                    //   className="rounded"
-                    // />
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded"
-                    />
-
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-gray-400">No img</span>
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="border-b px-4 py-3 sm:table-cell lg:table-cell">
-                <div>
-                  <div className="font-medium text-gray-900">{product.name}</div>
-                  <div className="text-xs text-gray-500">SKU: {product.sku}</div>
-                </div>
-              </td>
-              <td className="border-b px-4 py-3 text-right font-medium sm:table-cell lg:table-cell">
-                {formatPrice(product.price)}
-              </td>
-              <td className="border-b px-4 py-3 text-right font-medium max-w-xs hidden md:hidden lg:table-cell">
-                {(product.affiliate)} %
-              </td>
-              <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
-                <StatusBadge status={product.is_active} />
-              </td>
-              <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
-                {product.category?.name || '-'}
-              </td>
-              <td className="border-b px-4 py-3 hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-center gap-3">
-                  <button
-                    onClick={(e) => handleEdit(e, product.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Sửa sản phẩm"
-                  >
-                    {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg> */}
-                     <PencilIcon className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={(e) => handleEdit(e, product.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Xóa sản phẩm"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
+              </th>
+              <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">Ảnh</th>
+              <th 
+                className="sticky top-0 border-b px-4 py-3 text-left cursor-pointer sm:table-cell lg:table-cell"
+                onClick={() => handleSort('name')}
+              >
+                <span className="flex items-center">
+                  Tên sản phẩm
+                  <SortIcon field="name" />
+                </span>
+              </th>
+              <th 
+                className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer sm:table-cell lg:table-cell"
+                onClick={() => handleSort('price')}
+              >
+                <span className="flex items-center justify-end">
+                  Giá bán
+                  <SortIcon field="price" />
+                </span>
+              </th>
+              <th 
+                className="sticky top-0 border-b px-4 py-3 text-right cursor-pointer hidden md:hidden lg:table-cell"
+                onClick={() => handleSort('affiliate')}
+              >
+                <span className="flex items-center justify-end">
+                  Affiliate
+                  <SortIcon field="affiliate" />
+                </span>
+              </th>
+              <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Trạng thái</th>
+              <th className="sticky top-0 border-b px-4 py-3 text-left hidden md:hidden lg:table-cell">Danh mục</th>
+              <th className="sticky top-0 border-b px-4 py-3 text-center hidden lg:table-cell">Thao tác</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {products?.map((product) => (
+              <tr 
+                key={product.id} 
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleRowClick(product.id)}
+              >
+                <td className="border-b px-4 py-3  hidden md:hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(product.id)}
+                    onChange={(e) => onSelectItem(product.id, e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                </td>
+                <td className="border-b px-4 py-3 hidden lg:table-cell">
+                  <div className="w-12 h-12 relative">
+                    {product.image ? (
+                      // <img
+                      //   src={product.image}
+                      //   alt={product.name}
+                      //   layout="fill"
+                      //   objectFit="cover"
+                      //   className="rounded"
+                      // />
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover rounded"
+                      />
+
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                        <span className="text-gray-400">No img</span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="border-b px-4 py-3 sm:table-cell lg:table-cell">
+                  <div>
+                    <div className="font-medium text-gray-900">{product.name}</div>
+                    <div className="text-xs text-gray-500">SKU: {product.sku}</div>
+                  </div>
+                </td>
+                <td className="border-b px-4 py-3 text-right font-medium sm:table-cell lg:table-cell">
+                  {formatPrice(product.price)}
+                </td>
+                <td className="border-b px-4 py-3 text-right font-medium max-w-xs hidden md:hidden lg:table-cell">
+                  {(product.affiliate)} %
+                </td>
+                <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
+                  <StatusBadge status={product.is_active} />
+                </td>
+                <td className="border-b px-4 py-3 hidden md:hidden lg:table-cell">
+                  {product.category?.name || '-'}
+                </td>
+                <td className="border-b px-4 py-3 hidden lg:table-cell" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      onClick={(e) => handleEdit(e, product.id)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Sửa sản phẩm"
+                    >
+                      {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg> */}
+                       <PencilIcon className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <button
+                      onClick={(e) => handleEdit(e, product.id)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Xóa sản phẩm"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9a2 2 0 11-4 0 2 2 0 014 0zM19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
