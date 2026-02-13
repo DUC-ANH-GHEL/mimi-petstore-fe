@@ -36,14 +36,35 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     // (backend may still accept omission, but some validators expect the key)
     formData.append('description', (productData.description ?? '').toString());
     formData.append('price', productData.price.toString());
+    if (typeof productData.sale_price === 'number') {
+      formData.append('sale_price', String(productData.sale_price));
+    }
+    if (productData.currency) {
+      formData.append('currency', String(productData.currency));
+    }
     formData.append('sku', productData.sku);
     formData.append('affiliate', String(productData.affiliate ?? 0));
+    if (typeof productData.stock === 'number') {
+      formData.append('stock', String(productData.stock));
+    }
     formData.append('weight', productData.weight.toString());
     formData.append('length', productData.length.toString());
     formData.append('width', productData.width.toString());
     formData.append('height', productData.height.toString());
     formData.append('is_active', String(productData.is_active ?? true));
     formData.append('category_id', productData.category_id.toString());
+
+    if (productData.brand) formData.append('brand', String(productData.brand));
+    if (productData.material) formData.append('material', String(productData.material));
+    if (productData.size) formData.append('size', String(productData.size));
+    if (productData.color) formData.append('color', String(productData.color));
+    if (productData.pet_type) formData.append('pet_type', String(productData.pet_type));
+    if (productData.season) formData.append('season', String(productData.season));
+
+    if (Array.isArray(productData.variants) && productData.variants.length > 0) {
+      // Some backends accept nested arrays as a JSON string field in multipart
+      formData.append('variants', JSON.stringify(productData.variants));
+    }
 
     // Only append File images if present (UI types currently store image URLs as strings)
     (productData.images ?? []).forEach((img: any) => {

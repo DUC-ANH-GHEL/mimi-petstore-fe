@@ -37,6 +37,11 @@ const productValidationRules: ValidationRules = {
     ...commonRules.price,
     message: 'Giá sản phẩm phải lớn hơn 0'
   },
+  sale_price: {
+    required: false,
+    min: 0,
+    message: 'Giá khuyến mãi phải lớn hơn hoặc bằng 0'
+  },
   stock: {
     ...commonRules.quantity,
     message: 'Số lượng tồn kho không được âm'
@@ -91,6 +96,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     description: '',
     sku: '',
     price: 0,
+    sale_price: 0,
+    currency: 'VND',
     affiliate: 0,
     weight:0,
     length: 0,
@@ -101,6 +108,12 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     status: 'active',
     is_active: true,
     category_id: 0,
+    brand: '',
+    material: '',
+    size: '',
+    color: '',
+    pet_type: '',
+    season: '',
     labels: [],
     images: [],
     specs: [],
@@ -116,6 +129,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       description: '',
       sku: '',
       price: 0,
+      sale_price: 0,
+      currency: 'VND',
       affiliate: 0,
       weight:0,
       length: 0,
@@ -125,6 +140,12 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       status: 'active',
       is_active: true,
       category_id: 0,
+      brand: '',
+      material: '',
+      size: '',
+      color: '',
+      pet_type: '',
+      season: '',
       labels: [],
       images: [],
       // specs: [{ key: '', value: '' }],
@@ -200,6 +221,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
     const numericFields = new Set([
       'price',
+      'sale_price',
       'affiliate',
       'weight',
       'length',
@@ -303,13 +325,18 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           onSuccess();
         }
       } else {
-        const created = await createProduct(dataForValidation);
+        const dataForCreate: ProductFormData = { ...dataForValidation, stock: initialStock };
+        const created = await createProduct(dataForCreate);
 
-        // OpenAPI doesn't support stock on create; set initial stock via PATCH if provided
+        // If backend didn't set stock on create, set initial stock via PATCH (delta-based)
         const createdId = Number(created?.id);
-        if (Number.isFinite(createdId) && initialStock > 0) {
+        const createdStock = typeof created?.stock === 'number' ? Number(created.stock) : undefined;
+        if (Number.isFinite(createdId) && initialStock > 0 && createdStock !== initialStock) {
           try {
-            await updateProductStock(createdId, initialStock);
+            const delta = typeof createdStock === 'number' ? (initialStock - createdStock) : initialStock;
+            if (delta !== 0) {
+              await updateProductStock(createdId, delta);
+            }
           } catch {
             // stock update is best-effort; don't fail product creation
           }
@@ -417,6 +444,20 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           </div>
 
           <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Giá khuyến mãi (VND)</label>
+            <input
+              type="number"
+              name="sale_price"
+              value={Number(formData.sale_price ?? 0)}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 149000"
+              min={0}
+            />
+            {errors.sale_price && <div className="text-red-500 text-xs mt-1">{errors.sale_price}</div>}
+          </div>
+
+          <div>
             <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Affiliate (%)</label>
             <input
               type="number"
@@ -470,6 +511,70 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
                 }`}
               />
             </button>
+          </div>
+        </div>
+
+        {/* Attributes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Thương hiệu</label>
+            <input
+              name="brand"
+              value={String(formData.brand ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: MiMi"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Chất liệu</label>
+            <input
+              name="material"
+              value={String(formData.material ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: Cotton"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Size (gợi ý)</label>
+            <input
+              name="size"
+              value={String(formData.size ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: S/M/L"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Màu sắc (gợi ý)</label>
+            <input
+              name="color"
+              value={String(formData.color ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: Hồng / Đen"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Loại thú cưng</label>
+            <input
+              name="pet_type"
+              value={String(formData.pet_type ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: Chó / Mèo"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Mùa</label>
+            <input
+              name="season"
+              value={String(formData.season ?? '')}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: Winter / Summer"
+            />
           </div>
         </div>
 

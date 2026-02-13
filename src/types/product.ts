@@ -19,6 +19,8 @@ export interface ProductFormData {
   description: string;
   sku: string;
   price: number;
+  sale_price?: number;
+  currency?: string;
   affiliate: number;
   weight: number;
   length: number;
@@ -28,12 +30,29 @@ export interface ProductFormData {
   status: string;
   is_active: boolean;
   category_id: number;
+  brand?: string;
+  material?: string;
+  size?: string;
+  color?: string;
+  pet_type?: string;
+  season?: string;
   labels: string[];
   images: Array<string | File>;
   specs: { key: string; value: string }[];
   slug: string;
   metaTitle: string;
   metaDescription: string;
+
+  variants?: Array<{
+    sku?: string;
+    size?: string;
+    color?: string;
+    material?: string;
+    price?: number;
+    sale_price?: number;
+    stock?: number;
+    is_active?: boolean;
+  }>;
 }
 
 export interface ProductFormDataUpdate extends ProductFormData {
