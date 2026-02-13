@@ -638,26 +638,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Size (gợi ý)</label>
-            <input
-              name="size"
-              value={String(formData.size ?? '')}
-              onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              placeholder="VD: S/M/L"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Màu sắc (gợi ý)</label>
-            <input
-              name="color"
-              value={String(formData.color ?? '')}
-              onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              placeholder="VD: Hồng / Đen"
-            />
-          </div>
-          <div>
             <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Loại thú cưng</label>
             <input
               name="pet_type"
