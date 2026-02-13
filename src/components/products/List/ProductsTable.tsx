@@ -14,6 +14,26 @@ const ProductsTable = ({
 }) => {
 const navigate = useNavigate();
 
+  const getProductThumb = (product: any): string | undefined => {
+    if (!product) return undefined;
+
+    // Back/forward compatible fields
+    const direct = product.image || product.image_url || product.thumbnail || product.imageUrl;
+    if (typeof direct === 'string' && direct.trim()) return direct;
+
+    const images = product.images;
+    if (Array.isArray(images) && images.length > 0) {
+      const first = images[0];
+      if (typeof first === 'string' && first.trim()) return first;
+      if (first && typeof first === 'object') {
+        const url = (first as any).image_url || (first as any).url;
+        if (typeof url === 'string' && url.trim()) return url;
+      }
+    }
+
+    return undefined;
+  };
+
 
   // Format price with Vietnamese currency
   const formatPrice = (price) => {
@@ -108,8 +128,8 @@ const navigate = useNavigate();
             transition={{ duration: 0.5 }}
           >
             <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              {product.image ? (
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              {getProductThumb(product) ? (
+                <img src={getProductThumb(product)} alt={product.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-gray-400">No img</span>
               )}
@@ -201,7 +221,13 @@ const navigate = useNavigate();
                   />
                 </td>
                 <td className="border-b px-4 py-3 hidden lg:table-cell">
-                  <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
+                  {getProductThumb(product) ? (
+                    <img src={getProductThumb(product)} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                      No img
+                    </div>
+                  )}
                 </td>
                 <td className="border-b px-4 py-3 sm:table-cell lg:table-cell">
                   <div className="font-bold text-gray-900">{product.name}</div>

@@ -13,6 +13,7 @@ import { BadgeCheck, Tag, DollarSign, Info, Weight, Maximize2, Percent, Save, XC
 import { motion } from 'framer-motion';
 import { logo_url } from '../../config/api';
 import { parseApiError } from '../../utils/apiError';
+import { logout } from '../../services/authService';
 
 interface ProductFormProps {
   onSuccess?: () => void;
@@ -409,6 +410,9 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
       if (parsed.status === 401) {
         showToast('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.', 'error', 5000);
+        logout();
+        const current = `${window.location.pathname}${window.location.search}`;
+        window.location.href = `/admin/login?redirect=${encodeURIComponent(current)}`;
       } else {
         showToast(parsed.message || 'Có lỗi xảy ra. Vui lòng thử lại.', 'error', 6000);
       }
