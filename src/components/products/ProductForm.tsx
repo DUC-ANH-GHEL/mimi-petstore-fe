@@ -25,7 +25,6 @@ type VariantDraft = {
   color: string;
   material: string;
   price: string; // keep as string for input; convert on submit
-  sale_price: string;
   stock: string;
   is_active: boolean;
 };
@@ -47,11 +46,6 @@ const productValidationRules: ValidationRules = {
   price: {
     ...commonRules.price,
     message: 'Giá sản phẩm phải lớn hơn 0'
-  },
-  sale_price: {
-    required: false,
-    min: 0,
-    message: 'Giá khuyến mãi phải lớn hơn hoặc bằng 0'
   },
   stock: {
     ...commonRules.quantity,
@@ -77,12 +71,7 @@ const productValidationRules: ValidationRules = {
     min: 0,
     message: 'Chiều cao phải lớn hơn hoặc bằng 0'
   },
-  affiliate: {
-    required: true,
-    min: 0,
-    max: 100,
-    message: 'Phần trăm affiliate phải từ 0-100'
-  },
+  // affiliate is optional; we keep sending default 0 but don't show input
   category_id: {
     required: true,
     min: 1,
@@ -232,8 +221,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
     const numericFields = new Set([
       'price',
-      'sale_price',
-      'affiliate',
+      // sale_price + affiliate inputs removed from UI
       'stock',
       'weight',
       'length',
@@ -243,20 +231,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     ]);
 
     const nextValue: any = numericFields.has(name) ? Number(value) : value;
-
-    // Allow optional numeric fields to be blank
-    if (name === 'sale_price' && value === '') {
-      setFormData(prev => ({ ...prev, sale_price: null }));
-      setFormDataUpdate(prev => ({ ...prev, sale_price: null }));
-      if (errors[name]) {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[name];
-          return newErrors;
-        });
-      }
-      return;
-    }
 
     setFormData(prev => ({ ...prev, [name]: nextValue }));
     setFormDataUpdate(prev => ({ ...prev, [name]: nextValue }));
@@ -331,14 +305,12 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       variants: variants.length > 0
         ? variants.map((v) => {
             const priceText = v.price.trim();
-            const saleText = v.sale_price.trim();
             return {
               sku: v.sku.trim(),
               size: v.size.trim() || null,
               color: v.color.trim() || null,
               material: v.material.trim() || null,
               price: priceText.length > 0 ? Number(priceText) : null,
-              sale_price: saleText.length > 0 ? Number(saleText) : null,
               stock: Number(v.stock),
               is_active: v.is_active,
             };
@@ -353,16 +325,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
     const validationErrors = validateForm(dataForValidation, productValidationRules);
 
-    // Cross-field checks that validateForm can't express
-    if (dataForValidation.sale_price !== null && dataForValidation.sale_price !== undefined) {
-      const sale = Number(dataForValidation.sale_price);
-      const price = Number(dataForValidation.price);
-      if (Number.isFinite(sale) && Number.isFinite(price) && sale > price) {
-        validationErrors.sale_price = 'Giá khuyến mãi không được lớn hơn giá bán';
-      }
-    }
-
-    // Deep variants validation (unique SKU, non-negative stock, sale_price <= price)
+    // Deep variants validation (unique SKU, non-negative stock)
     const hasVariants = Array.isArray(dataForValidation.variants) && dataForValidation.variants.length > 0;
     if (hasVariants) {
       const skuSet = new Set<string>();
@@ -386,21 +349,8 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         }
 
         const vPrice = variant.price !== null && variant.price !== undefined ? Number(variant.price) : undefined;
-        const vSale = variant.sale_price !== null && variant.sale_price !== undefined ? Number(variant.sale_price) : undefined;
-
         if (vPrice !== undefined && (!Number.isFinite(vPrice) || vPrice < 0)) {
           validationErrors.variants = `Biến thể #${i + 1}: giá không hợp lệ`;
-          break;
-        }
-        if (vSale !== undefined && (!Number.isFinite(vSale) || vSale < 0)) {
-          validationErrors.variants = `Biến thể #${i + 1}: giá khuyến mãi không hợp lệ`;
-          break;
-        }
-
-        const basePrice = Number(dataForValidation.price);
-        const comparePrice = vPrice !== undefined ? vPrice : basePrice;
-        if (vSale !== undefined && Number.isFinite(comparePrice) && vSale > comparePrice) {
-          validationErrors.variants = `Biến thể #${i + 1}: giá khuyến mãi không được > giá`;
           break;
         }
       }
@@ -545,35 +495,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Giá khuyến mãi (VND)</label>
-            <input
-              type="number"
-              name="sale_price"
-              value={(formData.sale_price ?? '') as any}
-              onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              placeholder="VD: 149000"
-              min={0}
-            />
-            {errors.sale_price && <div className="text-red-500 text-xs mt-1">{errors.sale_price}</div>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Affiliate (%)</label>
-            <input
-              type="number"
-              name="affiliate"
-              value={formData.affiliate}
-              onChange={handleInputChange}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              placeholder="VD: 10"
-              min={0}
-              max={100}
-            />
-            {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
-          </div>
-
-          <div>
             <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Danh mục</label>
             <select
               name="category_id"
@@ -706,7 +627,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
                       color: '',
                       material: '',
                       price: '',
-                      sale_price: '',
                       stock: '0',
                       is_active: true,
                     },
@@ -733,7 +653,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
                   <div className="col-span-1">Màu</div>
                   <div className="col-span-2">Chất liệu</div>
                   <div className="col-span-2">Giá</div>
-                  <div className="col-span-2">Giá KM</div>
                   <div className="col-span-1">Kho *</div>
                 </div>
 
@@ -806,20 +725,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
                           }}
                           className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
                           placeholder="(để trống = dùng giá chung)"
-                        />
-                      </div>
-
-                      <div className="col-span-2">
-                        <input
-                          type="number"
-                          min={0}
-                          value={v.sale_price}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, sale_price: value } : row)));
-                          }}
-                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                          placeholder="(tuỳ chọn)"
                         />
                       </div>
 
