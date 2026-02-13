@@ -58,12 +58,12 @@ const Header = () => {
             <div className="relative">
               <img 
                 src={IMAGE_DEFAULT_URL} 
-                alt="KTM Logo" 
+                alt="MiMi PetStore Logo" 
                 className="h-16 w-16 object-contain"
               />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-gray-900">KTM Thủy Lực</h1>
+              <h1 className="text-2xl font-bold text-gray-900">MiMi PetStore</h1>
               <p className="text-sm text-gray-600">Kỹ thuật, Phụ tùng máy cơ giới</p>
             </div>
           </Link>

@@ -66,7 +66,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
         {sidebarOpen ? (
           <div className="flex items-center gap-2">
             <img src={logo_url} alt="Logo" className="h-8 w-8 rounded-full shadow" />
-            <span className="font-semibold text-lg tracking-wide">KTM Shop</span>
+            <span className="font-semibold text-lg tracking-wide">MiMi PetStore</span>
           </div>
         ) : (
           <img src={logo_url} alt="Logo" className="h-8 w-8 rounded-full shadow mx-auto" />
