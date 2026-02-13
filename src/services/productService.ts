@@ -92,6 +92,14 @@ export const updateProduct = async (productUpdate: ProductFormDataUpdate) : Prom
   }
 };
 
+export const updateProductStock = async (productId: number, quantity: number) => {
+  // OpenAPI: PATCH /api/v1/products/{product_id}/stock?quantity=...
+  const response = await apiClient.patch(`/products/${productId}/stock`, undefined, {
+    params: { quantity },
+  });
+  return response.data;
+};
+
 export const getProducts = async (params: GetProductsParams) => {
   try {
     const { skip, limit } = getSkipLimit(params?.page, params?.limit);
@@ -210,6 +218,8 @@ export const productService = {
       throw error;
     }
   },
+
+  updateProductStock: async (productId: number, quantity: number) => updateProductStock(productId, quantity),
   
   /**
    * Delete a product

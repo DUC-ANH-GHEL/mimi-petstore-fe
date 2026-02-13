@@ -4,14 +4,12 @@ import * as React from "react";
 import { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
 import { ProductFormData, FormError, ProductFormDataUpdate } from '../../types/product';
 import ImageUploader from './ImageUploader';
-import SpecificationFields from './SpecificationFields';
-import { createProduct, getProductById, getProductImageByProductId, updateProduct } from '../../services/productService';
+import { createProduct, getProductById, getProductImageByProductId, updateProduct, productService, updateProductStock } from '../../services/productService';
 import { useParams } from "react-router-dom";
 import { useToast } from '../Toast';
 import { validateForm, ValidationRules, commonRules } from '../../utils/validation';
-import LoadingButton from '../common/LoadingButton';
 import LoadingOverlay from '../common/LoadingOverlay';
-import { Layers, BadgeCheck, Tag, DollarSign, Info, Ruler, Weight, Maximize2, Percent, ArrowLeft, Save, XCircle } from 'lucide-react';
+import { BadgeCheck, Tag, DollarSign, Info, Weight, Maximize2, Percent, Save, XCircle, Link2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { logo_url } from '../../config/api';
 
@@ -78,6 +76,9 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const [product, setProduct] = useState<ProductFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [initialStock, setInitialStock] = useState<number>(0);
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -131,12 +132,29 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   );
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const list = await productService.getCategories();
+        const safe = Array.isArray(list) ? list : [];
+        setCategories(safe.map((c: any) => ({ id: Number(c.id), name: String(c.name ?? '') })));
+      } catch (e) {
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
         const response = await getProductById(id);
         const imageList = await getProductImageByProductId(id);
-        let listImage = imageList.map(element => element.image_url);
+        let listImage = imageList.map((element: any) => element.image_url);
         if (!listImage || listImage.length === 0) {
           listImage = [logo_url];
         }
@@ -150,7 +168,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         setLoading(false);
       }
     };
-    if (id !== null) {
+    if (typeof id === 'number' && id > 0) {
       fetchProduct();
     }
   }, [id]);
@@ -174,10 +192,21 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   // Xử lý thay đổi input
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setFormDataUpdate(prev => ({ ...prev, [name]: value }));
-    const listImage = formDataUpdate.listImageCurrent;
+
+    const numericFields = new Set([
+      'price',
+      'affiliate',
+      'weight',
+      'length',
+      'width',
+      'height',
+      'category_id',
+    ]);
+
+    const nextValue: any = numericFields.has(name) ? Number(value) : value;
+
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
+    setFormDataUpdate(prev => ({ ...prev, [name]: nextValue }));
     // setFormDataUpdate({ ... formData, id: id, listImageCurrent: listImage})
     // console.log("formupdate2", formDataUpdate)
     // Tự động tạo slug từ tên sản phẩm
@@ -187,6 +216,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         .replace(/[^\w\s]/gi, '')
         .replace(/\s+/g, '-');
       setFormData(prev => ({ ...prev, slug }));
+      setFormDataUpdate(prev => ({ ...prev, slug }));
     }
 
     // Xóa lỗi khi người dùng đã sửa
@@ -216,16 +246,12 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   };
 
   // Xử lý cập nhật hình ảnh
-  const handleImagesUpdate = (files: File[], images: string[]) => {
-    // Chỉ update nếu images thực sự khác và không phải là lần đầu bị rỗng
-    if (images.length === 0 && formData.images.length > 0) return;
-    setFormData(prev => {
-      const prevFile = (prev.images ?? []).filter(img => typeof img === 'string') as string[];
-      const same = prevFile.length === images.length && prevFile.every((f, i) => f === images[i]);
-      if (same) return prev;
-      return { ...prev, images: images };
-    });
-    setFormDataUpdate(prev => ({ ...prev, images: images }));
+  const handleImagesUpdate = (files: File[], existing: string[]) => {
+    const nextImages: Array<string | File> = [...existing, ...files];
+    setFormData(prev => ({ ...prev, images: nextImages }));
+
+    // For update payload, keep the backend-required listImageCurrent in sync
+    setFormDataUpdate(prev => ({ ...prev, listImageCurrent: existing }));
   };
 
   // Định dạng giá tiền
@@ -250,14 +276,25 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
     setIsSubmitting(true);
     try {
-      if(id != 0){
+      if (typeof id === 'number' && id > 0) {
         await updateProduct(formDataUpdate);
         showToast('Cập nhật sản phẩm thành công!', 'success');
         if (onSuccess) {
           onSuccess();
         }
       } else {
-        await createProduct(formData);
+        const created = await createProduct(formData);
+
+        // OpenAPI doesn't support stock on create; set initial stock via PATCH if provided
+        const createdId = Number(created?.id);
+        if (Number.isFinite(createdId) && initialStock > 0) {
+          try {
+            await updateProductStock(createdId, initialStock);
+          } catch {
+            // stock update is best-effort; don't fail product creation
+          }
+        }
+
         showToast('Tạo sản phẩm thành công!', 'success');
         if (onSuccess) {
           onSuccess();
@@ -278,116 +315,264 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     }
   };
 
-  console.log('ImageUploader initialImages:', formData.images);
-
   return (
     <>
       <LoadingOverlay isLoading={loading} text="Đang tải dữ liệu sản phẩm..." />
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-pink-50 py-8 px-2 md:px-8">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 mb-8 flex items-center gap-6">
-            <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg">
-              <Layers size={32} className="text-white" />
+      <motion.form
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        onSubmit={handleSubmit}
+        className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 md:p-8 space-y-8"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-sm text-gray-500 dark:text-gray-400">Sản phẩm quần áo thú cưng</div>
+            <h2 className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">
+              {typeof id === 'number' && id > 0 ? 'Cập nhật sản phẩm' : 'Tạo sản phẩm mới'}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">SKU: {formData.sku || '—'}</span>
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${formData.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
+                <BadgeCheck size={14} className={formData.is_active ? 'text-green-600 dark:text-green-300' : 'text-gray-400'} />
+                {formData.is_active ? 'Đang bán' : 'Ẩn'}
+              </span>
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-700 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{id ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}</h1>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-500">SKU: {formData.sku}</span>
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow ${formData.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
-                  <BadgeCheck size={16} className={formData.is_active ? 'text-green-500' : 'text-gray-400'} />
-                  {formData.is_active ? 'Đang bán' : 'Ẩn'}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-          {/* Form */}
-          <motion.form initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 md:p-10 space-y-8">
-            {/* Upload ảnh */}
-            <div>
-              <label className="block font-bold mb-2 flex items-center gap-2"><Layers size={20} className="text-blue-500" /> Ảnh sản phẩm</label>
-              {!loading && (
-                <ImageUploader
-                  key={formData.images?.join(',') + loading}
-                  initialImages={formData.images}
-                  onImagesUpdate={handleImagesUpdate}
-                />
-              )}
-            </div>
-            {/* Thông tin chính */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Tên sản phẩm</label>
-                <input ref={nameInputRef} name="name" value={formData.name} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Nhập tên sản phẩm" />
-                {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Tag size={18} className="text-blue-400" /> Mã SKU</label>
-                <input name="sku" value={formData.sku} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="SKU" />
-                {errors.sku && <div className="text-red-500 text-xs mt-1">{errors.sku}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><DollarSign size={18} className="text-orange-400" /> Giá bán</label>
-                <input type="number" name="price" value={formData.price} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-orange-400 shadow-sm" placeholder="Giá bán" />
-                {errors.price && <div className="text-red-500 text-xs mt-1">{errors.price}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Percent size={18} className="text-green-400" /> Affiliate (%)</label>
-                <input type="number" name="affiliate" value={formData.affiliate} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Affiliate" />
-                {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Layers size={18} className="text-pink-400" /> Danh mục</label>
-                <select name="category_id" value={formData.category_id} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm">
-                  <option value={0}>Chọn danh mục</option>
-                  <option value={1}>Ty xy lanh</option>
-                  <option value={2}>Van thủy lực</option>
-                  <option value={3}>Trang gạt</option>
-                </select>
-                {errors.category_id && <div className="text-red-500 text-xs mt-1">{errors.category_id}</div>}
-              </div>
-            </div>
-            {/* Mô tả */}
-            <div>
-              <label className="block font-bold mb-1 flex items-center gap-2"><Info size={18} className="text-blue-400" /> Mô tả</label>
-              <textarea name="description" value={formData.description} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Mô tả sản phẩm" rows={3} />
-              {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
-            </div>
-            {/* Thông số kỹ thuật */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Weight size={18} className="text-blue-400" /> Cân nặng (g)</label>
-                <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 shadow-sm" placeholder="Cân nặng" />
-                {errors.weight && <div className="text-red-500 text-xs mt-1">{errors.weight}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-pink-400" /> Chiều dài (cm)</label>
-                <input type="number" name="length" value={formData.length} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-pink-400 shadow-sm" placeholder="Chiều dài" />
-                {errors.length && <div className="text-red-500 text-xs mt-1">{errors.length}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-green-400" /> Chiều rộng (cm)</label>
-                <input type="number" name="width" value={formData.width} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-400 shadow-sm" placeholder="Chiều rộng" />
-                {errors.width && <div className="text-red-500 text-xs mt-1">{errors.width}</div>}
-              </div>
-              <div>
-                <label className="block font-bold mb-1 flex items-center gap-2"><Maximize2 size={18} className="text-yellow-400" /> Chiều cao (cm)</label>
-                <input type="number" name="height" value={formData.height} onChange={handleInputChange} className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-yellow-400 shadow-sm" placeholder="Chiều cao" />
-                {errors.height && <div className="text-red-500 text-xs mt-1">{errors.height}</div>}
-              </div>
-            </div>
-            {/* Nút thao tác */}
-            <div className="flex flex-col md:flex-row justify-end gap-4 mt-8">
-              <button type="button" onClick={handleCancel} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold text-center shadow hover:from-gray-400 hover:to-gray-500 transition flex items-center justify-center gap-2">
-                <XCircle size={20} /> Hủy
-              </button>
-              <button type="submit" disabled={isSubmitting} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-center shadow hover:from-blue-600 hover:to-blue-800 transition flex items-center justify-center gap-2">
-                <Save size={20} /> {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
-              </button>
-            </div>
-          </motion.form>
+          </div>
+
+          <img src={logo_url} alt="MiMi" className="h-10 w-10 rounded-full ring-1 ring-gray-200 dark:ring-gray-800" />
         </div>
-      </div>
+
+        {/* Images */}
+        <div className="space-y-2">
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Ảnh sản phẩm</div>
+          {!loading && (
+            <ImageUploader
+              initialImages={formData.images}
+              onImagesUpdate={handleImagesUpdate}
+            />
+          )}
+        </div>
+
+        {/* Core info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Tên sản phẩm</label>
+            <input
+              ref={nameInputRef}
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: Áo hoodie cho chó (Streetwear)"
+            />
+            {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Mã SKU</label>
+            <input
+              name="sku"
+              value={formData.sku}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: MIMI-HOODIE-001"
+            />
+            {errors.sku && <div className="text-red-500 text-xs mt-1">{errors.sku}</div>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Giá bán (VND)</label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 199000"
+              min={0}
+            />
+            {errors.price && <div className="text-red-500 text-xs mt-1">{errors.price}</div>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Affiliate (%)</label>
+            <input
+              type="number"
+              name="affiliate"
+              value={formData.affiliate}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 10"
+              min={0}
+              max={100}
+            />
+            {errors.affiliate && <div className="text-red-500 text-xs mt-1">{errors.affiliate}</div>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Danh mục</label>
+            <select
+              name="category_id"
+              value={formData.category_id}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              disabled={categoriesLoading}
+            >
+              <option value={0}>{categoriesLoading ? 'Đang tải danh mục...' : 'Chọn danh mục'}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            {errors.category_id && <div className="text-red-500 text-xs mt-1">{errors.category_id}</div>}
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3">
+            <div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Trạng thái bán</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Ẩn/hiện sản phẩm trên cửa hàng</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, is_active: !prev.is_active }));
+                setFormDataUpdate((prev) => ({ ...prev, is_active: !prev.is_active }));
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                formData.is_active ? 'bg-rose-600' : 'bg-gray-300 dark:bg-gray-700'
+              }`}
+              aria-label="Toggle active"
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  formData.is_active ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Slug */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Slug</label>
+          <div className="flex items-center gap-2">
+            <div className="shrink-0 text-gray-400"><Link2 size={16} /></div>
+            <input
+              name="slug"
+              value={formData.slug}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: ao-hoodie-cho-cho-streetwear"
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Mô tả</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            placeholder="Mô tả chất liệu, form, size, hướng dẫn giặt..."
+            rows={5}
+          />
+        </div>
+
+        {/* Shipping dimensions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Khối lượng (g)</label>
+            <input
+              type="number"
+              name="weight"
+              value={formData.weight}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 200"
+              min={0}
+            />
+            {errors.weight && <div className="text-red-500 text-xs mt-1">{errors.weight}</div>}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Dài (cm)</label>
+            <input
+              type="number"
+              name="length"
+              value={formData.length}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 25"
+              min={0}
+            />
+            {errors.length && <div className="text-red-500 text-xs mt-1">{errors.length}</div>}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Rộng (cm)</label>
+            <input
+              type="number"
+              name="width"
+              value={formData.width}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 20"
+              min={0}
+            />
+            {errors.width && <div className="text-red-500 text-xs mt-1">{errors.width}</div>}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Cao (cm)</label>
+            <input
+              type="number"
+              name="height"
+              value={formData.height}
+              onChange={handleInputChange}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 5"
+              min={0}
+            />
+            {errors.height && <div className="text-red-500 text-xs mt-1">{errors.height}</div>}
+          </div>
+        </div>
+
+        {/* Stock only on create */}
+        {!(typeof id === 'number' && id > 0) && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Tồn kho ban đầu</label>
+            <input
+              type="number"
+              value={initialStock}
+              onChange={(e) => setInitialStock(Number(e.target.value))}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder="VD: 50"
+              min={0}
+            />
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Hệ thống sẽ tạo sản phẩm trước, sau đó cập nhật tồn kho qua API.
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          >
+            <XCircle size={18} /> Hủy
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 font-semibold text-white shadow-sm disabled:opacity-60"
+          >
+            <Save size={18} /> {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
+          </button>
+        </div>
+      </motion.form>
     </>
   );
 };

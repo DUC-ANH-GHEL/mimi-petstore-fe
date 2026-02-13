@@ -5,7 +5,7 @@ import React from "react";
 type ImageItem = File | string; // File mới hoặc URL cũ
 interface ImageUploaderProps {
   onImagesUpdate: (images: File[], existing: string[]) => void;
-  initialImages?: string[] | File[];
+  initialImages?: Array<string | File>;
 }
 
 const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProps) => {
@@ -29,14 +29,14 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
     
     // Callback để truyền images ra ngoài
     const files = images.filter(img => img instanceof File) as File[];
-    const exsiting = images.filter(img => img === 'string') as string[];
-    onImagesUpdate(files, exsiting);
+    const existing = images.filter((img): img is string => typeof img === 'string');
+    onImagesUpdate(files, existing);
     
     // Cleanup khi component unmount
     return () => {
       newPreviews.forEach(URL.revokeObjectURL);
     };
-  }, [images]);
+  }, [images, onImagesUpdate]);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

@@ -29,7 +29,7 @@ export interface ProductFormData {
   is_active: boolean;
   category_id: number;
   labels: string[];
-  images: string[];
+  images: Array<string | File>;
   specs: { key: string; value: string }[];
   slug: string;
   metaTitle: string;
