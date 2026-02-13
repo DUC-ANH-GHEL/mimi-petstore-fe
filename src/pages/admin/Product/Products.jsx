@@ -103,19 +103,18 @@ const Products = () => {
   };
 
   return (
-      <div className="container mx-auto px-4 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Quản lý Sản phẩm</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Quản lý Sản phẩm</h1>
           <button 
             onClick={handleCreateProduct}
-            className=" text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 font-semibold shadow-sm transition-colors"
           >
-            <span className="material-icons text-sm"><img src="https://img.icons8.com/matisse/100/add-product.png" alt="" /></span>
-              
+            <span className="text-sm">Tạo sản phẩm</span>
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
           <FilterBar 
             onSearchChange={handleSearchChange} 
             onFilterChange={handleFilterChange}
@@ -142,7 +141,7 @@ const Products = () => {
               <button 
                 onClick={() => handlePageChange(filters.page - 1)}
                 disabled={filters.page === 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-lg disabled:opacity-50 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
               >
                 Trước
               </button>
@@ -152,7 +151,7 @@ const Products = () => {
               <button 
                 onClick={() => handlePageChange(filters.page + 1)}
                 disabled={products?.length < filters.limit}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-lg disabled:opacity-50 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
               >
                 Sau
               </button>

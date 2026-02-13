@@ -28,14 +28,14 @@ const RevenueChart = ({  data,
         setChartType, 
         setTimeRange  }: RevenueChartProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
       <div className="flex flex-wrap items-center justify-between mb-4">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white">Biểu đồ doanh thu</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Biểu đồ doanh thu</h2>
         
         <div className="flex items-center mt-2 sm:mt-0">
           <div className="mr-4">
             <select 
-              className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-rose-500 focus:border-rose-500 p-2"
               value={chartType}
               onChange={(e) => setChartType(e.target.value as 'line' | 'bar')}
             >
@@ -54,7 +54,7 @@ const RevenueChart = ({  data,
                 key={range.value}
                 className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                   timeRange === range.value 
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' 
+                    ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200' 
                     : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 onClick={() => setTimeRange(range.value as '7days' | '30days' | 'months')}
@@ -66,7 +66,7 @@ const RevenueChart = ({  data,
         </div>
       </div>
       
-      <div className="h-80">
+      <div className="h-80 text-rose-600 dark:text-rose-300">
         {loading ? (
           <div className="h-full w-full flex items-center justify-center">
             <div className="animate-pulse bg-gray-300 dark:bg-gray-700 rounded-md h-64 w-full"></div>
@@ -88,7 +88,7 @@ const RevenueChart = ({  data,
                 <Line 
                   type="monotone" 
                   dataKey="sales" 
-                  stroke="#3B82F6" 
+                  stroke="currentColor" 
                   strokeWidth={2}
                   activeDot={{ r: 8 }}
                 />
@@ -107,7 +107,7 @@ const RevenueChart = ({  data,
                 />
                 <Bar 
                   dataKey="sales" 
-                  fill="#3B82F6" 
+                  fill="currentColor" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

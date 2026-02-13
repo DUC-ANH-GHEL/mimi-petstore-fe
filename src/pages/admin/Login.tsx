@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useState, useEffect, FormEvent } from 'react';
-import { EyeIcon, EyeSlashIcon , EnvelopeIcon , LockClosedIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { loginWithApi } from '../../services/authService';
 import { useToast } from '../../components/Toast';
 import { validateForm, ValidationRules } from '../../utils/validation';
 import LoadingButton from '../../components/common/LoadingButton';
 import LoadingOverlay from '../../components/common/LoadingOverlay';
+import { logo_url } from '../../config/api';
 
 
 
@@ -129,11 +130,11 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
   return (
     <>
       <LoadingOverlay isLoading={isLoading} text="Đang đăng nhập..." />
-      <div className={`min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-sky-50 to-white'}`}>
+      <div className={`min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-950 text-gray-100' : 'bg-gradient-to-br from-rose-50 to-white'}`}>
         <div className="absolute top-4 right-4">
           <button
             onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-yellow-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+            className={`p-2 rounded-full ${darkMode ? 'bg-gray-900 hover:bg-gray-800 text-yellow-300' : 'bg-white/80 hover:bg-white text-gray-700 ring-1 ring-gray-200'}`}
             aria-label="Toggle dark mode"
           >
             {darkMode ? (
@@ -148,12 +149,13 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
           <div className="text-center">
             <img
               className="mx-auto h-12 w-auto"
-              src="/api/placeholder/120/48"
-              alt="AdminShop Logo"
+              src={logo_url}
+              alt="MiMi Petwear"
             />
+            <div className={`mt-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>MiMi Petwear Admin</div>
           </div>
           
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-8 rounded-xl shadow-xl transition-all duration-300`}>
+          <div className={`${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200'} p-8 rounded-2xl shadow-sm transition-all duration-300`}>
             <div className="mb-6 text-center">
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                 Đăng nhập tài khoản Admin
@@ -165,7 +167,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
               <div className="relative">
                 <label htmlFor="email" className="sr-only">Email</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <EyeSlashIcon  className="h-5 w-5 text-gray-400" />
+                  <EnvelopeIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="email"
@@ -175,7 +177,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500' : darkMode ? 'border-gray-600' : 'border-gray-300'} rounded-lg ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-50 text-gray-900'} focus:outline-none focus:ring-2 ${darkMode ? 'focus:ring-blue-500' : 'focus:ring-blue-500'} transition duration-150 ease-in-out`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500' : darkMode ? 'border-gray-700' : 'border-gray-300'} rounded-xl ${darkMode ? 'bg-gray-950 text-white placeholder-gray-500' : 'bg-gray-50 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500 transition duration-150 ease-in-out`}
                   placeholder="Email"
                 />
                 {errors.email && (
@@ -197,7 +199,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className={`block w-full pl-10 pr-10 py-3 border ${errors.password ? 'border-red-500' : darkMode ? 'border-gray-600' : 'border-gray-300'} rounded-lg ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-50 text-gray-900'} focus:outline-none focus:ring-2 ${darkMode ? 'focus:ring-blue-500' : 'focus:ring-blue-500'} transition duration-150 ease-in-out`}
+                  className={`block w-full pl-10 pr-10 py-3 border ${errors.password ? 'border-red-500' : darkMode ? 'border-gray-700' : 'border-gray-300'} rounded-xl ${darkMode ? 'bg-gray-950 text-white placeholder-gray-500' : 'bg-gray-50 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500 transition duration-150 ease-in-out`}
                   placeholder="Mật khẩu"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -208,7 +210,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                     tabIndex={-1}
                   >
                     {showPassword ? (
-                      <EnvelopeIcon  className="h-5 w-5" />
+                      <EyeSlashIcon className="h-5 w-5" />
                     ) : (
                       <EyeIcon className="h-5 w-5" />
                     )}
@@ -228,7 +230,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                     type="checkbox"
                     checked={formData.rememberMe}
                     onChange={handleChange}
-                    className={`h-4 w-4 ${darkMode ? 'bg-gray-700 border-gray-600 text-blue-500' : 'text-blue-600 border-gray-300'} rounded focus:ring-blue-500`}
+                    className={`h-4 w-4 ${darkMode ? 'bg-gray-950 border-gray-700 text-rose-500' : 'text-rose-600 border-gray-300'} rounded focus:ring-rose-500`}
                   />
                   <label htmlFor="remember-me" className={`ml-2 block text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Nhớ đăng nhập
@@ -239,7 +241,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className={`font-medium ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'} transition duration-150 ease-in-out`}
+                    className={`font-medium ${darkMode ? 'text-rose-300 hover:text-rose-200' : 'text-rose-700 hover:text-rose-800'} transition duration-150 ease-in-out`}
                   >
                     Quên mật khẩu?
                   </button>
@@ -254,10 +256,10 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                   loadingText="Đang đăng nhập..."
                   variant="primary"
                   fullWidth
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-white font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 bg-rose-600 hover:bg-rose-700"
                 >
                   <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                    <svg className="h-5 w-5 text-blue-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <svg className="h-5 w-5 text-rose-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                     </svg>
                   </span>
@@ -280,7 +282,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
                   <div className={`w-full border-t ${darkMode ? 'border-gray-700' : 'border-gray-300'}`}></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className={`px-2 ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>hoặc</span>
+                  <span className={`px-2 ${darkMode ? 'bg-gray-900 text-gray-400' : 'bg-white text-gray-500'}`}>hoặc</span>
                 </div>
               </div>
             </div>
@@ -306,7 +308,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
           {/* Footer */}
           <div className="mt-4 text-center">
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              © 2025 AdminShop. All rights reserved.
+              © 2025 MiMi Petwear.
             </p>
           </div>
         </div>

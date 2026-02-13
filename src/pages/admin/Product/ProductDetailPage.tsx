@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ProductHeader from "../../../components/products/Detail/ProductHeader";
 import ProductGallery from "../../../components/products/Detail/ProductGallery";
-import ProductInfoBlock from "../../../components/products/Detail/ProductInfoBlock";
-import ProductSpec from "../../../components/products/Detail/ProductSpec";
 import { ProductFormData } from "../../../types/product";
 import { getProductById } from "../../../services/productService";
-import { BadgeCheck, Tag, DollarSign, Layers, ArrowLeft, Edit, Info, Ruler, Weight, Maximize2, Percent } from 'lucide-react';
+import { BadgeCheck, Tag, DollarSign, Layers, ArrowLeft, Edit, Info, Ruler, Weight, Maximize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ProductDetail = () => {
@@ -16,6 +13,10 @@ const ProductDetail = () => {
 
     const goToUpdate = () => {
         navigate(`/admin/product/update/${id}`)
+    }
+
+    const goBack = () => {
+        navigate('/admin/products');
     }
 
     useEffect(() => {
@@ -33,95 +34,108 @@ const ProductDetail = () => {
     }, [id])
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-pink-50 py-8 px-2 md:px-8">
-            <div className="max-w-4xl mx-auto">
-                <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 mb-8 flex items-center gap-6">
-                    <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center shadow-lg">
-                        <Layers size={40} className="text-white" />
+        <div className="mx-auto max-w-6xl">
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6 flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center">
+                    <Layers size={24} className="text-rose-700 dark:text-rose-200" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{product?.name}</h1>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">SKU: {product?.sku}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${product?.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'}`}>
+                            <BadgeCheck size={14} className={product?.is_active ? 'text-green-600 dark:text-green-300' : 'text-gray-400'} />
+                            {product?.is_active ? 'Đang bán' : 'Ẩn'}
+                        </span>
                     </div>
-                    <div className="flex-1">
-                        <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-700 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{product?.name}</h1>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-500">SKU: {product?.sku}</span>
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow ${product?.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
-                                <BadgeCheck size={16} className={product?.is_active ? 'text-green-500' : 'text-gray-400'} />
-                                {product?.is_active ? 'Đang bán' : 'Ẩn'}
-                            </span>
-                        </div>
-                    </div>
-                </motion.div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="bg-white rounded-2xl shadow-xl p-4 flex flex-col items-center">
+                </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.05 }} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4">
                         <ProductGallery
                             productId={id ? parseInt(id) : null}
                             product={product}
                         />
                     </motion.div>
-                    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="flex flex-col gap-6">
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.05 }} className="flex flex-col gap-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl p-4 flex items-center gap-3 shadow">
-                                <DollarSign size={28} className="text-orange-500" />
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center">
+                                    <DollarSign size={20} className="text-rose-700 dark:text-rose-200" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-gray-500">Giá bán</div>
-                                    <div className="text-xl font-bold text-orange-600">{product?.price?.toLocaleString()} đ</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">Giá bán</div>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{product?.price?.toLocaleString()} đ</div>
                                 </div>
                             </div>
-                            <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-4 flex items-center gap-3 shadow">
-                                <Tag size={28} className="text-blue-500" />
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center">
+                                    <Tag size={20} className="text-rose-700 dark:text-rose-200" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-gray-500">Affiliate</div>
-                                    <div className="text-xl font-bold text-blue-600">{product?.affiliate} %</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">Affiliate</div>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{product?.affiliate} %</div>
                                 </div>
                             </div>
-                            <div className="bg-gradient-to-br from-pink-100 to-pink-50 rounded-xl p-4 flex items-center gap-3 shadow">
-                                <Layers size={28} className="text-pink-500" />
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 flex items-center gap-3 sm:col-span-2">
+                                <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center">
+                                    <Layers size={20} className="text-rose-700 dark:text-rose-200" />
+                                </div>
                                 <div>
-                                    <div className="text-xs text-gray-500">Danh mục</div>
-                                    <div className="text-xl font-bold text-pink-600">{product?.category_id}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">Danh mục</div>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{product?.category_id}</div>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <blockquote className="border-l-4 border-blue-400 pl-4 text-gray-700 italic flex items-start gap-2">
-                                <Info size={20} className="text-blue-400 mt-0.5" />
-                                <span>{product?.description}</span>
-                            </blockquote>
+
+                        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+                            <div className="flex items-start gap-2 text-gray-700 dark:text-gray-200">
+                                <Info size={18} className="text-rose-600 dark:text-rose-300 mt-0.5" />
+                                <div>
+                                    <div className="text-sm font-semibold">Mô tả</div>
+                                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{product?.description}</div>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
+            </div>
+
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="mt-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+                <div className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <Ruler size={20} className="text-rose-600 dark:text-rose-300" /> Thông số kỹ thuật
                 </div>
-                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="bg-white rounded-2xl shadow p-6 mb-8">
-                    <div className="font-bold text-lg mb-4 flex items-center gap-2"><Ruler size={22} className="text-blue-500" /> Thông số kỹ thuật</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 bg-blue-50 rounded-lg p-3">
-                            <Weight size={20} className="text-blue-400" />
-                            <span className="text-gray-700">Cân nặng:</span>
-                            <span className="font-bold text-blue-700">{product?.weight} g</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-pink-50 rounded-lg p-3">
-                            <Maximize2 size={20} className="text-pink-400" />
-                            <span className="text-gray-700">Chiều cao:</span>
-                            <span className="font-bold text-pink-700">{product?.height} cm</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-green-50 rounded-lg p-3">
-                            <Maximize2 size={20} className="text-green-400" />
-                            <span className="text-gray-700">Chiều rộng:</span>
-                            <span className="font-bold text-green-700">{product?.width} cm</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-yellow-50 rounded-lg p-3">
-                            <Maximize2 size={20} className="text-yellow-400" />
-                            <span className="text-gray-700">Chiều dài:</span>
-                            <span className="font-bold text-yellow-700">{product?.length} cm</span>
-                        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+                        <Weight size={18} className="text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">Cân nặng</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-gray-100">{product?.weight} g</span>
                     </div>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }} className="flex flex-col md:flex-row justify-end gap-4 mt-8">
-                    <a href="/admin/products" className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-bold text-center shadow hover:from-gray-400 hover:to-gray-500 transition flex items-center justify-center gap-2">
-                        <ArrowLeft size={20} /> Trở lại
-                    </a>
-                    <button onClick={goToUpdate} className="flex-1 md:flex-none py-3 px-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-center shadow hover:from-blue-600 hover:to-blue-800 transition flex items-center justify-center gap-2">
-                        <Edit size={20} /> Cập nhật
-                    </button>
-                </motion.div>
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+                        <Maximize2 size={18} className="text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">Chiều cao</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-gray-100">{product?.height} cm</span>
+                    </div>
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+                        <Maximize2 size={18} className="text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">Chiều rộng</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-gray-100">{product?.width} cm</span>
+                    </div>
+                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+                        <Maximize2 size={18} className="text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">Chiều dài</span>
+                        <span className="ml-auto font-semibold text-gray-900 dark:text-gray-100">{product?.length} cm</span>
+                    </div>
+                </div>
+            </motion.div>
+
+            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
+                <button onClick={goBack} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                    <ArrowLeft size={18} /> Trở lại
+                </button>
+                <button onClick={goToUpdate} className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 font-semibold text-white shadow-sm transition-colors">
+                    <Edit size={18} /> Cập nhật
+                </button>
             </div>
         </div>
     );

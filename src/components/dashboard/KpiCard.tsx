@@ -12,9 +12,9 @@ interface KpiCardProps {
 const KpiCard = ({ icon, title, value, subtext, trend, color }: KpiCardProps) => {
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-all">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors">
       <div className="flex items-start justify-between">
-        <div className={`p-3 rounded-lg ${color}`}>
+        <div className={`p-3 rounded-xl ${color}`}>
           {icon}
         </div>
         {trend !== undefined && (

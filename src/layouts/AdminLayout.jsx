@@ -32,25 +32,21 @@ const AdminLayout = () => {
   }, []);
 
   return (
-    <div className="flex h-screen">
-      <Sidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+    <div className={darkMode ? 'dark' : ''}>
+      <div className="flex h-screen bg-rose-50/40 dark:bg-gray-950">
+        <Sidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
-         {/* ✅ HEADER CHUNG */}
-   
-    <Header sidebarOpen={sidebarOpen}  darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
-      {/* <main
-        className={`flex-1 bg-gray-100 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? 'ml-64' : 'ml-20'
-        } p-6`}
-      > */}
-      <main 
-      // className="flex-1 bg-gray-100 p-6 overflow-y-auto h-screen"
-      className={`flex-1 bg-gray-100 overflow-y-auto transition-all duration-300 ease-in-out p-6 pt-24`}
-      >
+        <div
+          className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
+            sidebarOpen ? 'ml-64' : 'ml-20'
+          }`}
+        >
+          <Header sidebarOpen={sidebarOpen} darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
 
-        <Outlet />
-      </main>
+          <main className="flex-1 overflow-y-auto p-6 pt-24">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

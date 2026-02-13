@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ProductsTable = ({ 
@@ -67,8 +67,8 @@ const navigate = useNavigate();
       return <span className="text-gray-300 ml-1">↕</span>;
     }
     return currentSort.sortOrder === 'asc' 
-      ? <span className="text-blue-600 ml-1">↑</span> 
-      : <span className="text-blue-600 ml-1">↓</span>;
+      ? <span className="text-rose-600 ml-1">↑</span> 
+      : <span className="text-rose-600 ml-1">↓</span>;
   };
 
   // Edit product
@@ -101,7 +101,7 @@ const navigate = useNavigate();
         {products?.map((product) => (
           <motion.div
             key={product.id}
-            className="bg-white rounded-xl shadow p-4 flex gap-4 items-center hover:shadow-lg transition cursor-pointer"
+            className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 flex gap-4 items-center hover:border-gray-300 dark:hover:border-gray-700 transition cursor-pointer"
             onClick={() => handleRowClick(product.id)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,22 +119,16 @@ const navigate = useNavigate();
               <div className="text-orange-600 font-bold text-lg mb-1">{formatPrice(product.price)}</div>
               <div className="flex flex-wrap gap-2 items-center text-xs mb-1">
                 <StatusBadge status={product.is_active} />
-                <span className="bg-blue-50 text-blue-700 rounded px-2 py-0.5">SKU: {product.sku}</span>
+                <span className="bg-rose-50 text-rose-700 rounded px-2 py-0.5">SKU: {product.sku}</span>
                 <span className="bg-green-50 text-green-700 rounded px-2 py-0.5">{product.affiliate} %</span>
                 <span className="bg-gray-50 text-gray-700 rounded px-2 py-0.5">{product.category?.name || '-'}</span>
               </div>
               <div className="flex gap-3 mt-2">
                 <button
                   onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
-                  className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-blue-700 transition"
+                  className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow-sm hover:bg-rose-700 transition"
                 >
                   <Pencil className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
-                  className="flex-1 py-2 rounded-lg bg-red-500 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-red-600 transition"
-                >
-                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -144,14 +138,14 @@ const navigate = useNavigate();
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full bg-white border-separate border-spacing-0">
-          <thead className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
+          <thead className="bg-gradient-to-r from-rose-600 to-rose-700 text-white">
             <tr>
               <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">
                 <input
                   type="checkbox"
                   checked={allSelected}
                   onChange={(e) => onSelectAll(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 hidden lg:table-cell"
+                  className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 hidden lg:table-cell"
                 />
               </th>
               <th className="sticky top-0 border-b px-4 py-3 text-left hidden lg:table-cell">Ảnh</th>
@@ -203,7 +197,7 @@ const navigate = useNavigate();
                     type="checkbox"
                     checked={selectedItems.includes(product.id)}
                     onChange={(e) => onSelectItem(product.id, e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500"
                   />
                 </td>
                 <td className="border-b px-4 py-3 hidden lg:table-cell">
@@ -228,7 +222,7 @@ const navigate = useNavigate();
                 <td className="border-b px-4 py-3 text-center hidden lg:table-cell">
                   <button
                     onClick={e => { e.stopPropagation(); handleEdit(e, product.id); }}
-                    className="py-2 px-4 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow hover:bg-blue-700 transition"
+                    className="py-2 px-4 rounded-xl bg-rose-600 text-white font-bold flex items-center justify-center gap-2 text-sm shadow-sm hover:bg-rose-700 transition"
                   >
                     <Pencil className="h-5 w-5" />
                   </button>

@@ -29,7 +29,7 @@ const CustomerCard: React.FC<CustomerCardProps> = ({ customer }) => {
       </div>
       <div className="text-right">
         <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(customer.spent)}</p>
-        <button className="mt-1 text-xs px-2 py-1 bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+        <button className="mt-1 text-xs px-2 py-1 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200 rounded hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors">
           Nhắn Zalo
         </button>
       </div>

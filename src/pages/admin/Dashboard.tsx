@@ -139,10 +139,10 @@ const Dashboard = () => {
   const loading = false;
 
   const kpis = [
-    { icon: <DollarSign size={20} />, title: 'Tổng doanh thu', value: '₫2,300,000', subtext: 'Tháng này', trend: 12, color: 'bg-blue-100 text-blue-600' },
-    { icon: <ShoppingCart size={20} />, title: 'Đơn hàng', value: '128', subtext: 'Tuần này', trend: 5, color: 'bg-green-100 text-green-600' },
-    { icon: <Users size={20} />, title: 'Khách hàng mới', value: '34', subtext: 'Tuần này', trend: -3, color: 'bg-yellow-100 text-yellow-600' },
-    { icon: <TrendingUp size={20} />, title: 'Tăng trưởng', value: '8.2%', subtext: 'So với tháng trước', trend: 8, color: 'bg-purple-100 text-purple-600' },
+    { icon: <DollarSign size={20} />, title: 'Tổng doanh thu', value: '₫2,300,000', subtext: 'Tháng này', trend: 12, color: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200' },
+    { icon: <ShoppingCart size={20} />, title: 'Đơn hàng', value: '128', subtext: 'Tuần này', trend: 5, color: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200' },
+    { icon: <Users size={20} />, title: 'Khách hàng mới', value: '34', subtext: 'Tuần này', trend: -3, color: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200' },
+    { icon: <TrendingUp size={20} />, title: 'Tăng trưởng', value: '8.2%', subtext: 'So với tháng trước', trend: 8, color: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200' },
   ];
 
   const revenueData = [
@@ -189,15 +189,15 @@ const Dashboard = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <h2 className="p-4 text-lg font-medium text-gray-900 dark:text-white border-b dark:border-gray-700">Sản phẩm bán chạy</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <h2 className="p-4 text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">Sản phẩm bán chạy</h2>
           {topProducts.map((p, i) => (
             <TopProductCard key={p.id} product={p} rank={i} />
           ))}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <h2 className="p-4 text-lg font-medium text-gray-900 dark:text-white border-b dark:border-gray-700">Khách hàng thân thiết</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <h2 className="p-4 text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800">Khách hàng thân thiết</h2>
           {customers.map((c) => (
             <CustomerCard key={c.id} customer={c} />
           ))}
