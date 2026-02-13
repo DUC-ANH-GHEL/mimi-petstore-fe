@@ -19,6 +19,17 @@ interface ProductFormProps {
   id: number | null;
 }
 
+type VariantDraft = {
+  sku: string;
+  size: string;
+  color: string;
+  material: string;
+  price: string; // keep as string for input; convert on submit
+  sale_price: string;
+  stock: string;
+  is_active: boolean;
+};
+
 const productValidationRules: ValidationRules = {
   name: {
     ...commonRules.name,
@@ -76,20 +87,6 @@ const productValidationRules: ValidationRules = {
     required: true,
     min: 1,
     message: 'Vui lòng chọn danh mục sản phẩm'
-  },
-  variants: {
-    required: false,
-    custom: (value: any) => {
-      const text = String(value ?? '').trim();
-      if (!text) return true;
-      try {
-        const parsed = JSON.parse(text);
-        return Array.isArray(parsed);
-      } catch {
-        return false;
-      }
-    },
-    message: 'Variants phải là JSON hợp lệ (mảng)'
   }
 };
 
@@ -102,7 +99,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [variantsText, setVariantsText] = useState<string>('');
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -202,9 +199,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         setProduct(fullData);
         setFormData(fullData);
         setFormDataUpdate({ ...fullData, id: id, listImageCurrent: listImage });
-
-        // Variants editor is only used on create currently.
-        setVariantsText('');
       } catch (error) {
         console.log('Lỗi lấy sản phẩm hoặc ảnh: ', error);
       } finally {
@@ -332,11 +326,24 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-');
 
-    const trimmedVariantsText = variantsText.trim();
     const dataForValidation: ProductFormData = {
       ...(ensuredSlug !== formData.slug ? { ...formData, slug: ensuredSlug } : formData),
-      // Create API expects a JSON string. Keep it empty unless user provided text.
-      variants: trimmedVariantsText.length > 0 ? trimmedVariantsText : null,
+      variants: variants.length > 0
+        ? variants.map((v) => {
+            const priceText = v.price.trim();
+            const saleText = v.sale_price.trim();
+            return {
+              sku: v.sku.trim(),
+              size: v.size.trim() || null,
+              color: v.color.trim() || null,
+              material: v.material.trim() || null,
+              price: priceText.length > 0 ? Number(priceText) : null,
+              sale_price: saleText.length > 0 ? Number(saleText) : null,
+              stock: Number(v.stock),
+              is_active: v.is_active,
+            };
+          })
+        : null,
     };
 
     if (ensuredSlug !== formData.slug) {
@@ -356,57 +363,46 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     }
 
     // Deep variants validation (unique SKU, non-negative stock, sale_price <= price)
-    const hasVariants = typeof dataForValidation.variants === 'string' && dataForValidation.variants.trim().length > 0;
+    const hasVariants = Array.isArray(dataForValidation.variants) && dataForValidation.variants.length > 0;
     if (hasVariants) {
-      try {
-        const parsed = JSON.parse(String(dataForValidation.variants));
-        if (!Array.isArray(parsed)) {
-          validationErrors.variants = 'Variants phải là một mảng JSON';
-        } else {
-          const skuSet = new Set<string>();
-          for (let i = 0; i < parsed.length; i++) {
-            const variant = parsed[i] ?? {};
-            const sku = String(variant.sku ?? '').trim();
-            if (!sku) {
-              validationErrors.variants = `Variant #${i + 1}: thiếu sku`;
-              break;
-            }
-            if (skuSet.has(sku)) {
-              validationErrors.variants = `Variant #${i + 1}: sku bị trùng (${sku})`;
-              break;
-            }
-            skuSet.add(sku);
-
-            if (variant.stock !== undefined && variant.stock !== null) {
-              const stock = Number(variant.stock);
-              if (!Number.isFinite(stock) || stock < 0) {
-                validationErrors.variants = `Variant #${i + 1}: stock phải >= 0`;
-                break;
-              }
-            }
-
-            const vPrice = variant.price !== undefined && variant.price !== null ? Number(variant.price) : undefined;
-            const vSale = variant.sale_price !== undefined && variant.sale_price !== null ? Number(variant.sale_price) : undefined;
-
-            if (vPrice !== undefined && (!Number.isFinite(vPrice) || vPrice < 0)) {
-              validationErrors.variants = `Variant #${i + 1}: price không hợp lệ`;
-              break;
-            }
-            if (vSale !== undefined && (!Number.isFinite(vSale) || vSale < 0)) {
-              validationErrors.variants = `Variant #${i + 1}: sale_price không hợp lệ`;
-              break;
-            }
-
-            // If variant has its own price, compare against it; otherwise compare against base price.
-            const comparePrice = vPrice !== undefined ? vPrice : Number(dataForValidation.price);
-            if (vSale !== undefined && Number.isFinite(comparePrice) && vSale > comparePrice) {
-              validationErrors.variants = `Variant #${i + 1}: sale_price không được > price`;
-              break;
-            }
-          }
+      const skuSet = new Set<string>();
+      for (let i = 0; i < dataForValidation.variants.length; i++) {
+        const variant = dataForValidation.variants[i] as any;
+        const sku = String(variant.sku ?? '').trim();
+        if (!sku) {
+          validationErrors.variants = `Biến thể #${i + 1}: thiếu SKU`;
+          break;
         }
-      } catch {
-        validationErrors.variants = 'Variants phải là JSON hợp lệ';
+        if (skuSet.has(sku)) {
+          validationErrors.variants = `Biến thể #${i + 1}: SKU bị trùng (${sku})`;
+          break;
+        }
+        skuSet.add(sku);
+
+        const stock = Number(variant.stock);
+        if (!Number.isFinite(stock) || stock < 0) {
+          validationErrors.variants = `Biến thể #${i + 1}: tồn kho phải >= 0`;
+          break;
+        }
+
+        const vPrice = variant.price !== null && variant.price !== undefined ? Number(variant.price) : undefined;
+        const vSale = variant.sale_price !== null && variant.sale_price !== undefined ? Number(variant.sale_price) : undefined;
+
+        if (vPrice !== undefined && (!Number.isFinite(vPrice) || vPrice < 0)) {
+          validationErrors.variants = `Biến thể #${i + 1}: giá không hợp lệ`;
+          break;
+        }
+        if (vSale !== undefined && (!Number.isFinite(vSale) || vSale < 0)) {
+          validationErrors.variants = `Biến thể #${i + 1}: giá khuyến mãi không hợp lệ`;
+          break;
+        }
+
+        const basePrice = Number(dataForValidation.price);
+        const comparePrice = vPrice !== undefined ? vPrice : basePrice;
+        if (vSale !== undefined && Number.isFinite(comparePrice) && vSale > comparePrice) {
+          validationErrors.variants = `Biến thể #${i + 1}: giá khuyến mãi không được > giá`;
+          break;
+        }
       }
     }
 
@@ -430,7 +426,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         // If backend didn't set stock on create, set initial stock via PATCH (delta-based)
         // If variants are provided, backend overrides stock using variants' total.
         // Only do best-effort stock sync when creating a simple (non-variant) product.
-        const hasVariantsOnCreate = typeof dataForValidation.variants === 'string' && dataForValidation.variants.trim().length > 0;
+        const hasVariantsOnCreate = Array.isArray(dataForValidation.variants) && dataForValidation.variants.length > 0;
         if (!hasVariantsOnCreate) {
           const createdId = Number(created?.id);
           const createdStock = typeof created?.stock === 'number' ? Number(created.stock) : undefined;
@@ -713,29 +709,194 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
 
         {/* Variants (create only) */}
         {!(typeof id === 'number' && id > 0) && (
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Variants (JSON)</label>
-            <textarea
-              name="variants"
-              value={variantsText}
-              onChange={(e) => {
-                setVariantsText(e.target.value);
-                if (errors.variants) {
-                  setErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.variants;
-                    return next;
-                  });
-                }
-              }}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-              placeholder='VD: [{"sku":"MIMI-HOODIE-S-BLACK","stock":10,"price":199000,"sale_price":149000,"size":"S","color":"Black"}]'
-              rows={4}
-            />
-            {errors.variants && <div className="text-red-500 text-xs mt-1">{errors.variants}</div>}
-            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Nếu có variants, hệ thống sẽ tính tồn kho theo tổng stock của variants.
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Biến thể (Size / Màu / ...)</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Mỗi biến thể có SKU, giá và tồn kho riêng.</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setVariants((prev) => [
+                    ...prev,
+                    {
+                      sku: '',
+                      size: '',
+                      color: '',
+                      material: '',
+                      price: '',
+                      sale_price: '',
+                      stock: '0',
+                      is_active: true,
+                    },
+                  ]);
+                  if (errors.variants) {
+                    setErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.variants;
+                      return next;
+                    });
+                  }
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                + Thêm biến thể
+              </button>
             </div>
+
+            {variants.length > 0 && (
+              <div className="rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div className="grid grid-cols-12 gap-2 bg-gray-50 dark:bg-gray-800/40 px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                  <div className="col-span-3">SKU *</div>
+                  <div className="col-span-1">Size</div>
+                  <div className="col-span-1">Màu</div>
+                  <div className="col-span-2">Chất liệu</div>
+                  <div className="col-span-2">Giá</div>
+                  <div className="col-span-2">Giá KM</div>
+                  <div className="col-span-1">Kho *</div>
+                </div>
+
+                <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {variants.map((v, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 px-3 py-3">
+                      <div className="col-span-3">
+                        <input
+                          value={v.sku}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, sku: value } : row)));
+                            if (errors.variants) {
+                              setErrors((prev) => {
+                                const next = { ...prev };
+                                delete next.variants;
+                                return next;
+                              });
+                            }
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="VD: MIMI-HOODIE-S-BLACK"
+                        />
+                      </div>
+
+                      <div className="col-span-1">
+                        <input
+                          value={v.size}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, size: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="S"
+                        />
+                      </div>
+
+                      <div className="col-span-1">
+                        <input
+                          value={v.color}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, color: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="Đen"
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <input
+                          value={v.material}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, material: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="Cotton"
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={v.price}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, price: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="(để trống = dùng giá chung)"
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={v.sale_price}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, sale_price: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="(tuỳ chọn)"
+                        />
+                      </div>
+
+                      <div className="col-span-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={v.stock}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, stock: value } : row)));
+                          }}
+                          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          placeholder="0"
+                        />
+                      </div>
+
+                      <div className="col-span-12 flex items-center justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVariants((prev) => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="text-sm font-semibold text-rose-600 hover:text-rose-700"
+                        >
+                          Xoá biến thể
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVariants((prev) => prev.map((row, i) => (i === idx ? { ...row, is_active: !row.is_active } : row)));
+                          }}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            v.is_active ? 'bg-rose-600' : 'bg-gray-300 dark:bg-gray-700'
+                          }`}
+                          aria-label="Toggle variant active"
+                        >
+                          <span
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                              v.is_active ? 'translate-x-5' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {errors.variants && <div className="text-red-500 text-xs">{errors.variants}</div>}
+            {variants.length > 0 && (
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Khi có biến thể, hệ thống sẽ tính tồn kho theo tổng tồn kho của các biến thể.
+              </div>
+            )}
           </div>
         )}
 
@@ -796,7 +957,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         </div>
 
         {/* Stock only on create */}
-        {!(typeof id === 'number' && id > 0) && (
+        {!(typeof id === 'number' && id > 0) && variants.length === 0 && (
           <div>
             <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Tồn kho ban đầu</label>
             <input
