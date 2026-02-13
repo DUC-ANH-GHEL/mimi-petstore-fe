@@ -1,11 +1,11 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient';
 
 export const loginWithApi = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/v1/users/users/login`, {  
-        email: email,
-        password: password, },);
+    const response = await apiClient.post(`/users/users/login`, {
+      email,
+      password,
+    });
     const token = response.data?.access_token;
     if (!token) throw new Error('Không nhận được token');
     return { success: true, token };

@@ -1,7 +1,7 @@
 // 📁 src/services/viettelService.ts
 import axios from 'axios';
 import { OrderPayload, ShippingServiceInput } from '../types/order'
-import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient';
 
 const VIETTEL_API_URL = 'https://partner.viettelpost.vn/v2';
 
@@ -26,12 +26,10 @@ const VIETTEL_API_URL = 'https://partner.viettelpost.vn/v2';
 
 export const createOrder = async (payload: OrderPayload) => {
     try {
-      const token = sessionStorage.getItem('adminToken');
-      const response = await axios.post(`${API_BASE_URL}/order`, payload,  {
+      const response = await apiClient.post(`/orders/`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        },
       });
       return response.data;
     } catch (error: any) {
@@ -73,10 +71,8 @@ export const getDistricts = async (provinceId: number) => {
   };
 
   export const loginViettelPost = async (): Promise<string> => {
-    const url = `${API_BASE_URL}/viettelpost/viettelpost/token`;
-  
     try {
-      const res = await axios.get(url); // gọi đến backend nội bộ
+      const res = await apiClient.get(`/viettelpost/viettelpost/token`);
   
       if (res.data?.token) {
         return res.data.token;
@@ -92,7 +88,7 @@ export const getDistricts = async (provinceId: number) => {
   
 export const getShippingServices = async (body: ShippingServiceInput, token: string) => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/viettelpost/viettelpost/get-price`, body, {
+      const res = await apiClient.post(`/viettelpost/viettelpost/get-price`, body, {
         headers: {
           'Content-Type': 'application/json',
           'Token': token

@@ -1,128 +1,148 @@
 // src/services/productService.ts
 import { ProductFormData, ProductFormDataUpdate } from '../types/product';
-import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient';
 
-import axios from 'axios';
-import { json } from 'react-router-dom';
+type GetProductsParams = {
+  search?: string;
+  status?: boolean | string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+const getSkipLimit = (page?: number, limit?: number) => {
+  const safeLimit = typeof limit === 'number' && limit > 0 ? limit : undefined;
+  const safePage = typeof page === 'number' && page > 0 ? page : undefined;
+  const skip = safePage && safeLimit ? (safePage - 1) * safeLimit : 0;
+  return { skip, limit: safeLimit };
+};
+
+const isTruthyStatus = (status: unknown) => {
+  if (typeof status === 'boolean') return status;
+  if (typeof status === 'string') return status.toLowerCase() === 'true' || status.toLowerCase() === 'active';
+  return undefined;
+};
 
 export const // Hàm gọi API tạo sản phẩm mới
 createProduct = async (productData: ProductFormData): Promise<any> => {
-try {
-    // Tạo FormData để upload file và dữ liệu
+  try {
     const formData = new FormData();
-    
-    // Thêm các trường thông tin vào formData
+
+    // OpenAPI: POST /api/v1/products/ (multipart/form-data)
     formData.append('name', productData.name);
-    formData.append('description', productData.description);
-    formData.append('sku', productData.sku);
+    formData.append('slug', productData.slug);
+    formData.append('description', productData.description ?? '');
     formData.append('price', productData.price.toString());
-    formData.append('affiliate', productData.affiliate.toString());
+    formData.append('sku', productData.sku);
+    formData.append('affiliate', String(productData.affiliate ?? 0));
     formData.append('weight', productData.weight.toString());
     formData.append('length', productData.length.toString());
-    formData.append('width',productData.width.toString());
+    formData.append('width', productData.width.toString());
     formData.append('height', productData.height.toString());
-    formData.append('stock', productData.stock.toString());
-    formData.append('status', productData.status);
+    formData.append('is_active', String(productData.is_active ?? true));
     formData.append('category_id', productData.category_id.toString());
-    formData.append('labels', JSON.stringify(productData.labels));
-    formData.append('specs', JSON.stringify(productData.specs));
-    formData.append('slug', productData.slug);
-    formData.append('metaTitle', productData.metaTitle);
-    formData.append('metaDescription', productData.metaDescription);
-    
-    // Thêm các file ảnh vào formData
-    productData.images.forEach((image, index) => {
-    formData.append(`images`, image);
+
+    // Only append File images if present (UI types currently store image URLs as strings)
+    (productData.images ?? []).forEach((img: any) => {
+      if (img instanceof File) {
+        formData.append('images', img);
+      }
     });
-    
-    // Gọi API
-    const response = await fetch(`${API_BASE_URL}/products/add-product`, {
-    method: 'POST',
-    body: formData,
-    // Không cần set Content-Type header khi sử dụng FormData
+
+    const response = await apiClient.post(`/products/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-    
-    if (!response.ok) {
-    throw new Error('Failed to create product');
-    }
-    
-    return await response.json();
-} catch (error) {
+    return response.data;
+  } catch (error) {
     console.error('Error creating product:', error);
     throw error;
-}
+  }
 };
 
 export const updateProduct = async (productUpdate: ProductFormDataUpdate) : Promise<any> => {
-  try{
-    const formData = new FormData();
-    if(productUpdate.id != undefined){
-      formData.append('id', productUpdate.id.toString());
-    }
-    formData.append('name', productUpdate.name);
-    formData.append('description',  productUpdate.description);
-    formData.append('sku', productUpdate.sku);
-    formData.append('price', productUpdate.price.toString());
-    formData.append('affiliate', productUpdate.affiliate.toString());
-    formData.append('weight', productUpdate.weight.toString());
-    formData.append('length', productUpdate.length.toString());
-    formData.append('width', productUpdate.width.toString());
-    formData.append('height', productUpdate.height.toString());
-    if(productUpdate.stock != undefined){
-      formData.append('stock', productUpdate.stock.toString());
-    }
-    formData.append('status', productUpdate.status);
-    formData.append('category_id', productUpdate.category_id.toString());
-    formData.append('labels', JSON.stringify(productUpdate.labels));
-    formData.append('specs', JSON.stringify(productUpdate.specs));
-    formData.append('slug', productUpdate.slug);
-    formData.append('metaTitle', productUpdate.metaTitle);
-    formData.append('metaDescription', productUpdate.metaDescription);
+  try {
+    // OpenAPI: PUT /api/v1/products/{product_id} (application/json)
+    // Note: image updates are handled separately via /products/{product_id}/images endpoints.
+    const body = {
+      id: productUpdate.id,
+      name: productUpdate.name,
+      slug: productUpdate.slug,
+      description: productUpdate.description ?? null,
+      price: Number(productUpdate.price),
+      sku: productUpdate.sku,
+      affiliate: Number(productUpdate.affiliate ?? 0),
+      weight: Number(productUpdate.weight),
+      length: Number(productUpdate.length),
+      width: Number(productUpdate.width),
+      height: Number(productUpdate.height),
+      is_active: Boolean(productUpdate.is_active),
+      category_id: Number(productUpdate.category_id),
 
-    productUpdate.images.forEach(element => {
-      formData.append('images', element);
-    });
-    productUpdate.listImageCurrent.forEach(image => {
-      formData.append('listImageCurrent', image);
-    })
+      // Keep compatibility with the backend's ProductUpdate schema
+      listImageCurrent: Array.isArray(productUpdate.listImageCurrent) ? productUpdate.listImageCurrent : [],
+      listImageNew: [],
+      images: [],
+    };
 
-    const response = await fetch(`${API_BASE_URL}/products/update`, {
-      method: 'PUT',
-      body: formData
-    })
-
-    if(!response.ok){
-      throw new Error('Fail to update product')
-    }
-
-    return await response.json()
-  }
-  catch(error){
+    const response = await apiClient.put(`/products/${productUpdate.id}`, body);
+    return response.data;
+  } catch (error) {
     throw error;
   }
 };
 
-export const getProducts = async (params: {
-    search?: string;
-    status?: boolean;
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/products/`, {
-        params,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw error?.response?.data || { message: 'Lỗi không xác định' };
+export const getProducts = async (params: GetProductsParams) => {
+  try {
+    const { skip, limit } = getSkipLimit(params?.page, params?.limit);
+    const activeOnly = isTruthyStatus(params?.status);
+    const search = (params?.search ?? '').trim();
+
+    // OpenAPI supports: skip, limit, in_stock
+    // Search/status are handled client-side to keep existing UI behavior.
+    const serverLimit = search ? 1000 : (limit ?? 100);
+    const response = await apiClient.get(`/products/`, {
+      params: {
+        skip: search ? 0 : skip,
+        limit: serverLimit,
+        in_stock: false,
+      },
+    });
+
+    let list = Array.isArray(response.data) ? response.data : [];
+
+    if (typeof activeOnly === 'boolean') {
+      list = list.filter((p: any) => Boolean(p?.is_active) === activeOnly);
     }
-  };
+
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter((p: any) => {
+        const name = String(p?.name ?? '').toLowerCase();
+        const sku = String(p?.sku ?? '').toLowerCase();
+        return name.includes(q) || sku.includes(q);
+      });
+    }
+
+    const effectiveLimit = limit ?? 100;
+    const effectiveSkip = search ? (skip ?? 0) : skip;
+    const paged = list.slice(effectiveSkip, effectiveSkip + effectiveLimit);
+
+    // Back-compat shape used in existing screens
+    const minimumTotal = search ? list.length : effectiveSkip + paged.length + (paged.length === effectiveLimit ? effectiveLimit : 0);
+    return {
+      data: paged,
+      total: minimumTotal,
+      totalCount: minimumTotal,
+    };
+  } catch (error: any) {
+    throw error?.response?.data || { message: 'Lỗi không xác định' };
+  }
+};
 
   export const  getProductById = async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products/${id}`);
+      const response = await apiClient.get(`/products/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
@@ -132,7 +152,7 @@ export const getProducts = async (params: {
 
   export const getProductImageByProductId = async (productId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products/images/${productId}`);
+      const response = await apiClient.get(`/products/${productId}/images`);
       return response.data;
     } catch (error) {
       console.log(`Error fetching product image:`,  error)
@@ -143,38 +163,14 @@ export const getProducts = async (params: {
 export const productService = {
 
    
-getProducts: async (filters) => {
-    try {
-      const { search, category, status, page, limit, sortBy, sortOrder } = filters;
-      
-      const response = await axios.get(`${API_BASE_URL}/products`, {
-        params: {
-          search,
-          status,
-          page,
-          limit,
-          sortBy,
-          sortOrder
-        }
-      });
-      
-      return {
-        data: response.data.products,
-        totalCount: response.data.totalCount
-      };
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      throw error;
-    }
-  },
+  getProducts: async (filters) => getProducts(filters),
   
   /**
    * Get product by ID
    */
   getProductById: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/products/${id}`);
-      return response.data;
+      return await getProductById(id);
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
       throw error;
@@ -183,8 +179,7 @@ getProducts: async (filters) => {
 
   getProductImageByProductId: async (productId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/products/images/${productId}`);
-      return response.data;
+      return await getProductImageByProductId(productId);
     } catch (error) {
       console.log(`Error fetching product image:`,  error)
       throw error
@@ -196,12 +191,7 @@ getProducts: async (filters) => {
    */
   createProduct: async (productData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/products`, productData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return response.data;
+      return await createProduct(productData);
     } catch (error) {
       console.error('Error creating product:', error);
       throw error;
@@ -213,11 +203,7 @@ getProducts: async (filters) => {
    */
   updateProduct: async (id, productData) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/api/products/${id}`, productData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await apiClient.put(`/products/${id}`, productData);
       return response.data;
     } catch (error) {
       console.error(`Error updating product ${id}:`, error);
@@ -230,7 +216,7 @@ getProducts: async (filters) => {
    */
   deleteProduct: async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/products/${id}`);
+      await apiClient.delete(`/products/${id}`);
       return true;
     } catch (error) {
       console.error(`Error deleting product ${id}:`, error);
@@ -243,7 +229,7 @@ getProducts: async (filters) => {
    */
   deleteMultiple: async (ids) => {
     try {
-      await axios.post(`${API_BASE_URL}/api/products/delete-multiple`, { ids });
+      await Promise.all((ids ?? []).map((id: any) => apiClient.delete(`/products/${id}`)));
       return true;
     } catch (error) {
       console.error('Error deleting multiple products:', error);
@@ -256,7 +242,7 @@ getProducts: async (filters) => {
    */
   getCategories: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/categories`);
+      const response = await apiClient.get(`/categories/categories/`);
       return response.data;
     } catch (error) {
       console.error('Error fetching categories:', error);
