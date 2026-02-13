@@ -267,7 +267,11 @@ export const productService = {
    */
   deleteProduct: async (id) => {
     try {
-      await apiClient.delete(`/products/${id}`);
+      const productId = Number(id);
+      if (!Number.isFinite(productId)) {
+        throw new Error('ID sản phẩm không hợp lệ');
+      }
+      await apiClient.delete(`/products/${productId}`);
       return true;
     } catch (error) {
       console.error(`Error deleting product ${id}:`, error);
@@ -280,7 +284,24 @@ export const productService = {
    */
   deleteMultiple: async (ids) => {
     try {
-      await Promise.all((ids ?? []).map((id: any) => apiClient.delete(`/products/${id}`)));
+      const list = Array.isArray(ids) ? ids : [];
+      const normalized = list
+        .map((x: any) => Number(x))
+        .filter((x: any) => Number.isFinite(x));
+
+      const results = await Promise.allSettled(
+        normalized.map((productId: number) => apiClient.delete(`/products/${productId}`))
+      );
+
+      const failed = results
+        .map((r, idx) => ({ r, productId: normalized[idx] }))
+        .filter((x) => x.r.status === 'rejected');
+
+      if (failed.length > 0) {
+        const e: any = new Error(`Không xoá được ${failed.length} sản phẩm`);
+        e.failedIds = failed.map((x) => x.productId);
+        throw e;
+      }
       return true;
     } catch (error) {
       console.error('Error deleting multiple products:', error);

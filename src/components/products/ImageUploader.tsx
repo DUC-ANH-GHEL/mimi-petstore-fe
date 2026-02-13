@@ -7,12 +7,16 @@ type ImageItem = File | string; // File mới hoặc URL cũ
 interface ImageUploaderProps {
   onImagesUpdate: (images: File[], existing: string[]) => void;
   initialImages?: Array<string | File>;
+  label?: string;
+  helpText?: string;
+  requiredPrimary?: boolean;
 }
 
-const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProps) => {
+const ImageUploader = ({ onImagesUpdate, initialImages = [], label = 'Ảnh sản phẩm', helpText, requiredPrimary }: ImageUploaderProps) => {
   const [images, setImages] = useState<ImageItem[]>([...initialImages]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const dragIndexRef = React.useRef<number | null>(null);
 
   // Keep stable object URLs per File to avoid blob: URL churn and revoke-too-early issues
   const objectUrlMapRef = React.useRef<Map<File, string>>(new Map());
@@ -152,6 +156,43 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
     })();
   };
 
+  const handleDropFiles = (files: File[]) => {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+
+    (async () => {
+      const accepted: File[] = [];
+      const rejected: string[] = [];
+
+      for (const file of files) {
+        const isImage = (file.type ?? '').startsWith('image/');
+        if (!isImage) {
+          rejected.push(`${file.name}: không phải ảnh`);
+          continue;
+        }
+        try {
+          const finalFile = await compressIfNeeded(file);
+          accepted.push(finalFile);
+        } catch (err: any) {
+          rejected.push(err?.message ? String(err.message) : `${file.name}: lỗi nén ảnh`);
+        }
+      }
+
+      if (rejected.length > 0) setUploadError(rejected.join(' | '));
+      if (accepted.length > 0) setImages((prev) => [...prev, ...accepted]);
+    })();
+  };
+
+  const reorder = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  };
+
   const removeImage = (index: number) => {
     setImages(prev => {
       const newImages = [...prev];
@@ -163,9 +204,23 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        Ảnh sản phẩm
+        {label}{requiredPrimary ? ' *' : ''}
       </label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+      {helpText && <div className="text-xs text-gray-500 mb-2">{helpText}</div>}
+      <div
+        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const dt = e.dataTransfer;
+          const dropped = Array.from(dt?.files ?? []);
+          handleDropFiles(dropped);
+        }}
+      >
         <input
           type="file"
           id="images"
@@ -195,6 +250,7 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
               Kéo thả hoặc click để chọn ảnh
             </p>
             <p className="text-xs text-gray-500">Ảnh &gt; 10MB sẽ tự nén về &le; 10MB</p>
+            <p className="text-xs text-gray-500">Kéo thả thumbnail để sắp xếp (ảnh đầu tiên là ảnh chính)</p>
           </div>
         </label>
       </div>
@@ -206,12 +262,32 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
       {previews.length > 0 && (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {previews.map((src, index) => (
-            <div key={index} className="relative">
+            <div
+              key={index}
+              className="relative"
+              draggable
+              onDragStart={() => {
+                dragIndexRef.current = index;
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={() => {
+                const from = dragIndexRef.current;
+                if (typeof from === 'number') reorder(from, index);
+                dragIndexRef.current = null;
+              }}
+            >
               <img
                 src={src}
                 alt={`Preview ${index + 1}`}
                 className="h-24 w-full object-cover rounded-md"
               />
+              {index === 0 && (
+                <div className="absolute bottom-1 left-1 text-[10px] px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                  Chính
+                </div>
+              )}
               <button
                 type="button"
                 className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"

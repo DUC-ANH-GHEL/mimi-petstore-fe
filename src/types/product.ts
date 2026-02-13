@@ -1,4 +1,33 @@
 // src/types/product.ts
+export type ProductStatus = 'draft' | 'active' | 'discontinued';
+export type PetType = 'dog' | 'cat' | 'both';
+export type Season = 'winter' | 'summer' | 'all';
+
+export type ProductOption = {
+  name: string;
+  values: string[];
+};
+
+export type VariantAttribute = {
+  name: string;
+  value: string;
+};
+
+export type ProductVariant = {
+  id?: number;
+  sku: string;
+  price: number;
+  compare_price?: number | null;
+  cost_price?: number | null;
+  stock: number;
+  manage_stock?: boolean;
+  allow_backorder?: boolean;
+  status?: ProductStatus;
+  is_active?: boolean;
+  image?: string | null;
+  attributes?: VariantAttribute[];
+};
+
 export interface Product {
   id: number;
   name: string;
@@ -12,14 +41,37 @@ export interface Product {
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
+
+  // PRD additions (optional, backward-compatible)
+  short_description?: string | null;
+  description_html?: string | null;
+  video_url?: string | null;
+  brand?: string | null;
+  pet_type?: PetType | null;
+  season?: Season | null;
+  tags?: string[];
+  product_status?: ProductStatus;
+  featured?: boolean;
+  display_order?: number | null;
+  low_stock_threshold?: number | null;
+  compare_price?: number | null;
+  cost_price?: number | null;
+  manage_stock?: boolean;
+  allow_backorder?: boolean;
+  options?: ProductOption[];
+  variants?: ProductVariant[];
 }
 
 export interface ProductFormData {
   name: string;
   description: string;
+  short_description?: string;
+  description_html?: string;
   sku: string;
   price: number;
   sale_price?: number | null;
+  compare_price?: number | null;
+  cost_price?: number | null;
   currency?: string;
   affiliate: number;
   weight: number;
@@ -38,10 +90,20 @@ export interface ProductFormData {
   season?: string;
   labels: string[];
   images: Array<string | File>;
+  video_url?: string | null;
+  tags?: string[];
+  product_status?: ProductStatus;
+  featured?: boolean;
+  display_order?: number | null;
+  low_stock_threshold?: number | null;
+  manage_stock?: boolean;
+  allow_backorder?: boolean;
+  options?: ProductOption[];
   specs: { key: string; value: string }[];
   slug: string;
   metaTitle: string;
   metaDescription: string;
+  seoSlug?: string;
 
   // Create API expects `variants` as a JSON string (array).
   // Keep flexible type so UI can work with either string or structured array.
@@ -55,8 +117,15 @@ export interface ProductFormData {
         material?: string | null;
         price?: number | null;
         sale_price?: number | null;
+        compare_price?: number | null;
+        cost_price?: number | null;
         stock: number;
         is_active?: boolean;
+        status?: ProductStatus;
+        manage_stock?: boolean;
+        allow_backorder?: boolean;
+        image?: string | File | null;
+        attributes?: VariantAttribute[];
       }>;
 }
 

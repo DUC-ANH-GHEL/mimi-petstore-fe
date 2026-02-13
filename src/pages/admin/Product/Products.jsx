@@ -4,9 +4,13 @@ import ProductsTable from '../../../components/products/List/ProductsTable';
 import FilterBar from '../../../components/products/List/FillterBar';
 import { productService } from '../../../services/productService';
 import { getProducts } from '../../../services/productService';
+import { useToast } from '../../../components/Toast';
+import { parseApiError } from '../../../utils/apiError';
+import { logout } from '../../../services/authService';
 
 const Products = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -90,10 +94,20 @@ const Products = () => {
     if (window.confirm(`Bạn có chắc chắn muốn xoá ${selectedItems?.length} sản phẩm đã chọn?`)) {
       try {
         await productService.deleteMultiple(selectedItems);
+        showToast('Đã xoá sản phẩm đã chọn', 'success');
         fetchProducts();
         setSelectedItems([]);
       } catch (error) {
         console.error('Error deleting products:', error);
+        const parsed = parseApiError(error);
+        if (parsed?.status === 401) {
+          showToast('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.', 'error', 5000);
+          logout();
+          const current = `${window.location.pathname}${window.location.search}`;
+          window.location.href = `/admin/login?redirect=${encodeURIComponent(current)}`;
+          return;
+        }
+        showToast(parsed?.message || 'Không xoá được sản phẩm', 'error', 6000);
       }
     }
   };
