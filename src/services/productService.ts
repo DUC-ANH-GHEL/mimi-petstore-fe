@@ -32,10 +32,9 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     // OpenAPI: POST /api/v1/products/ (multipart/form-data)
     formData.append('name', productData.name);
     formData.append('slug', productData.slug);
-    const description = (productData.description ?? '').trim();
-    if (description) {
-      formData.append('description', description);
-    }
+    // Keep payload aligned with OpenAPI schema: include optional fields when present
+    // (backend may still accept omission, but some validators expect the key)
+    formData.append('description', (productData.description ?? '').toString());
     formData.append('price', productData.price.toString());
     formData.append('sku', productData.sku);
     formData.append('affiliate', String(productData.affiliate ?? 0));
