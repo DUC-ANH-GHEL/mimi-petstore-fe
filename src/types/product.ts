@@ -19,7 +19,7 @@ export interface ProductFormData {
   description: string;
   sku: string;
   price: number;
-  sale_price?: number;
+  sale_price?: number | null;
   currency?: string;
   affiliate: number;
   weight: number;
@@ -43,18 +43,19 @@ export interface ProductFormData {
   metaTitle: string;
   metaDescription: string;
 
-  // OpenAPI expects `variants` as a JSON string ("JSON array of variants").
-  // We keep a flexible type so UI can work with structured variants too.
+  // Create API expects `variants` as a JSON string (array).
+  // Keep flexible type so UI can work with either string or structured array.
   variants?:
     | string
+    | null
     | Array<{
-        sku?: string;
-        size?: string;
-        color?: string;
-        material?: string;
-        price?: number;
-        sale_price?: number;
-        stock?: number;
+        sku: string;
+        size?: string | null;
+        color?: string | null;
+        material?: string | null;
+        price?: number | null;
+        sale_price?: number | null;
+        stock: number;
         is_active?: boolean;
       }>;
 }

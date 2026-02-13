@@ -76,6 +76,20 @@ const productValidationRules: ValidationRules = {
     required: true,
     min: 1,
     message: 'Vui lòng chọn danh mục sản phẩm'
+  },
+  variants: {
+    required: false,
+    custom: (value: any) => {
+      const text = String(value ?? '').trim();
+      if (!text) return true;
+      try {
+        const parsed = JSON.parse(text);
+        return Array.isArray(parsed);
+      } catch {
+        return false;
+      }
+    },
+    message: 'Variants phải là JSON hợp lệ (mảng)'
   }
 };
 
@@ -88,6 +102,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [variantsText, setVariantsText] = useState<string>('');
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -95,7 +110,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     description: '',
     sku: '',
     price: 0,
-    sale_price: 0,
+    sale_price: null,
     currency: 'VND',
     affiliate: 0,
     weight:0,
@@ -128,7 +143,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       description: '',
       sku: '',
       price: 0,
-      sale_price: 0,
+      sale_price: null,
       currency: 'VND',
       affiliate: 0,
       weight:0,
@@ -187,6 +202,9 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         setProduct(fullData);
         setFormData(fullData);
         setFormDataUpdate({ ...fullData, id: id, listImageCurrent: listImage });
+
+        // Variants editor is only used on create currently.
+        setVariantsText('');
       } catch (error) {
         console.log('Lỗi lấy sản phẩm hoặc ảnh: ', error);
       } finally {
@@ -231,6 +249,20 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     ]);
 
     const nextValue: any = numericFields.has(name) ? Number(value) : value;
+
+    // Allow optional numeric fields to be blank
+    if (name === 'sale_price' && value === '') {
+      setFormData(prev => ({ ...prev, sale_price: null }));
+      setFormDataUpdate(prev => ({ ...prev, sale_price: null }));
+      if (errors[name]) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+      return;
+    }
 
     setFormData(prev => ({ ...prev, [name]: nextValue }));
     setFormDataUpdate(prev => ({ ...prev, [name]: nextValue }));
@@ -300,9 +332,12 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-');
 
-    const dataForValidation = ensuredSlug !== formData.slug
-      ? { ...formData, slug: ensuredSlug }
-      : formData;
+    const trimmedVariantsText = variantsText.trim();
+    const dataForValidation: ProductFormData = {
+      ...(ensuredSlug !== formData.slug ? { ...formData, slug: ensuredSlug } : formData),
+      // Create API expects a JSON string. Keep it empty unless user provided text.
+      variants: trimmedVariantsText.length > 0 ? trimmedVariantsText : null,
+    };
 
     if (ensuredSlug !== formData.slug) {
       setFormData((prev) => ({ ...prev, slug: ensuredSlug }));
@@ -310,6 +345,71 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     }
 
     const validationErrors = validateForm(dataForValidation, productValidationRules);
+
+    // Cross-field checks that validateForm can't express
+    if (dataForValidation.sale_price !== null && dataForValidation.sale_price !== undefined) {
+      const sale = Number(dataForValidation.sale_price);
+      const price = Number(dataForValidation.price);
+      if (Number.isFinite(sale) && Number.isFinite(price) && sale > price) {
+        validationErrors.sale_price = 'Giá khuyến mãi không được lớn hơn giá bán';
+      }
+    }
+
+    // Deep variants validation (unique SKU, non-negative stock, sale_price <= price)
+    const hasVariants = typeof dataForValidation.variants === 'string' && dataForValidation.variants.trim().length > 0;
+    if (hasVariants) {
+      try {
+        const parsed = JSON.parse(String(dataForValidation.variants));
+        if (!Array.isArray(parsed)) {
+          validationErrors.variants = 'Variants phải là một mảng JSON';
+        } else {
+          const skuSet = new Set<string>();
+          for (let i = 0; i < parsed.length; i++) {
+            const variant = parsed[i] ?? {};
+            const sku = String(variant.sku ?? '').trim();
+            if (!sku) {
+              validationErrors.variants = `Variant #${i + 1}: thiếu sku`;
+              break;
+            }
+            if (skuSet.has(sku)) {
+              validationErrors.variants = `Variant #${i + 1}: sku bị trùng (${sku})`;
+              break;
+            }
+            skuSet.add(sku);
+
+            if (variant.stock !== undefined && variant.stock !== null) {
+              const stock = Number(variant.stock);
+              if (!Number.isFinite(stock) || stock < 0) {
+                validationErrors.variants = `Variant #${i + 1}: stock phải >= 0`;
+                break;
+              }
+            }
+
+            const vPrice = variant.price !== undefined && variant.price !== null ? Number(variant.price) : undefined;
+            const vSale = variant.sale_price !== undefined && variant.sale_price !== null ? Number(variant.sale_price) : undefined;
+
+            if (vPrice !== undefined && (!Number.isFinite(vPrice) || vPrice < 0)) {
+              validationErrors.variants = `Variant #${i + 1}: price không hợp lệ`;
+              break;
+            }
+            if (vSale !== undefined && (!Number.isFinite(vSale) || vSale < 0)) {
+              validationErrors.variants = `Variant #${i + 1}: sale_price không hợp lệ`;
+              break;
+            }
+
+            // If variant has its own price, compare against it; otherwise compare against base price.
+            const comparePrice = vPrice !== undefined ? vPrice : Number(dataForValidation.price);
+            if (vSale !== undefined && Number.isFinite(comparePrice) && vSale > comparePrice) {
+              validationErrors.variants = `Variant #${i + 1}: sale_price không được > price`;
+              break;
+            }
+          }
+        }
+      } catch {
+        validationErrors.variants = 'Variants phải là JSON hợp lệ';
+      }
+    }
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       showToast('Vui lòng kiểm tra lại thông tin sản phẩm', 'warning');
@@ -328,17 +428,22 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
         const created = await createProduct(dataForValidation);
 
         // If backend didn't set stock on create, set initial stock via PATCH (delta-based)
-        const createdId = Number(created?.id);
-        const createdStock = typeof created?.stock === 'number' ? Number(created.stock) : undefined;
-        const desiredStock = Number(dataForValidation.stock ?? 0);
-        if (Number.isFinite(createdId) && desiredStock > 0 && createdStock !== desiredStock) {
-          try {
-            const delta = typeof createdStock === 'number' ? (desiredStock - createdStock) : desiredStock;
-            if (delta !== 0) {
-              await updateProductStock(createdId, delta);
+        // If variants are provided, backend overrides stock using variants' total.
+        // Only do best-effort stock sync when creating a simple (non-variant) product.
+        const hasVariantsOnCreate = typeof dataForValidation.variants === 'string' && dataForValidation.variants.trim().length > 0;
+        if (!hasVariantsOnCreate) {
+          const createdId = Number(created?.id);
+          const createdStock = typeof created?.stock === 'number' ? Number(created.stock) : undefined;
+          const desiredStock = Number(dataForValidation.stock ?? 0);
+          if (Number.isFinite(createdId) && desiredStock > 0 && createdStock !== desiredStock) {
+            try {
+              const delta = typeof createdStock === 'number' ? (desiredStock - createdStock) : desiredStock;
+              if (delta !== 0) {
+                await updateProductStock(createdId, delta);
+              }
+            } catch {
+              // stock update is best-effort; don't fail product creation
             }
-          } catch {
-            // stock update is best-effort; don't fail product creation
           }
         }
 
@@ -448,7 +553,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             <input
               type="number"
               name="sale_price"
-              value={Number(formData.sale_price ?? 0)}
+              value={(formData.sale_price ?? '') as any}
               onChange={handleInputChange}
               className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
               placeholder="VD: 149000"
@@ -606,6 +711,34 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           />
         </div>
 
+        {/* Variants (create only) */}
+        {!(typeof id === 'number' && id > 0) && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Variants (JSON)</label>
+            <textarea
+              name="variants"
+              value={variantsText}
+              onChange={(e) => {
+                setVariantsText(e.target.value);
+                if (errors.variants) {
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.variants;
+                    return next;
+                  });
+                }
+              }}
+              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              placeholder='VD: [{"sku":"MIMI-HOODIE-S-BLACK","stock":10,"price":199000,"sale_price":149000,"size":"S","color":"Black"}]'
+              rows={4}
+            />
+            {errors.variants && <div className="text-red-500 text-xs mt-1">{errors.variants}</div>}
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Nếu có variants, hệ thống sẽ tính tồn kho theo tổng stock của variants.
+            </div>
+          </div>
+        )}
+
         {/* Shipping dimensions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -676,7 +809,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
               min={0}
             />
             <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Hệ thống sẽ tạo sản phẩm trước, sau đó cập nhật tồn kho qua API.
+              Nếu không có variants, tồn kho sẽ được set khi tạo sản phẩm.
             </div>
           </div>
         )}

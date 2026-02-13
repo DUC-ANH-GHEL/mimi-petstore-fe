@@ -32,15 +32,16 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     // OpenAPI: POST /api/v1/products/ (multipart/form-data)
     formData.append('name', productData.name);
     formData.append('slug', productData.slug);
-    // Keep payload aligned with OpenAPI schema: include optional fields when present
-    // (backend may still accept omission, but some validators expect the key)
-    formData.append('description', (productData.description ?? '').toString());
+    const description = (productData.description ?? '').toString();
+    if (description.trim().length > 0) {
+      formData.append('description', description);
+    }
     formData.append('price', productData.price.toString());
-    if (typeof productData.sale_price === 'number') {
+    if (productData.sale_price !== null && productData.sale_price !== undefined) {
       formData.append('sale_price', String(productData.sale_price));
     }
-    if (productData.currency) {
-      formData.append('currency', String(productData.currency));
+    if (productData.currency && String(productData.currency).trim()) {
+      formData.append('currency', String(productData.currency).trim());
     }
     formData.append('sku', productData.sku);
     formData.append('affiliate', String(Math.trunc(Number(productData.affiliate ?? 0))));
@@ -54,17 +55,20 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     formData.append('is_active', String(productData.is_active ?? true));
     formData.append('category_id', productData.category_id.toString());
 
-    if (productData.brand) formData.append('brand', String(productData.brand));
-    if (productData.material) formData.append('material', String(productData.material));
-    if (productData.size) formData.append('size', String(productData.size));
-    if (productData.color) formData.append('color', String(productData.color));
-    if (productData.pet_type) formData.append('pet_type', String(productData.pet_type));
-    if (productData.season) formData.append('season', String(productData.season));
+    if (productData.brand && String(productData.brand).trim()) formData.append('brand', String(productData.brand).trim());
+    if (productData.material && String(productData.material).trim()) formData.append('material', String(productData.material).trim());
+    if (productData.size && String(productData.size).trim()) formData.append('size', String(productData.size).trim());
+    if (productData.color && String(productData.color).trim()) formData.append('color', String(productData.color).trim());
+    if (productData.pet_type && String(productData.pet_type).trim()) formData.append('pet_type', String(productData.pet_type).trim());
+    if (productData.season && String(productData.season).trim()) formData.append('season', String(productData.season).trim());
 
     if (productData.variants !== undefined && productData.variants !== null) {
       if (typeof productData.variants === 'string') {
-        formData.append('variants', productData.variants);
-      } else if (Array.isArray(productData.variants)) {
+        const variantsText = productData.variants.trim();
+        if (variantsText.length > 0) {
+          formData.append('variants', variantsText);
+        }
+      } else if (Array.isArray(productData.variants) && productData.variants.length > 0) {
         formData.append('variants', JSON.stringify(productData.variants));
       }
     }
