@@ -54,7 +54,7 @@ const Checkout = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-32">
         <div className="bg-white p-8 rounded shadow text-center">
-          <h2 className="text-2xl font-bold mb-4 text-blue-700">Giỏ hàng trống</h2>
+          <h2 className="text-2xl font-extrabold mb-4 text-rose-700">Giỏ hàng trống</h2>
           <p>Vui lòng chọn sản phẩm trước khi thanh toán.</p>
         </div>
       </div>
@@ -66,7 +66,7 @@ const Checkout = () => {
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-4 md:p-8 flex flex-col md:flex-row gap-8">
         {/* Left: Form */}
         <form onSubmit={handleSubmit} className="flex-1 space-y-6 order-2 md:order-1">
-          <h2 className="text-2xl font-bold text-blue-700 mb-2">Thông tin khách hàng</h2>
+          <h2 className="text-2xl font-extrabold text-rose-700 mb-2">Thông tin nhận hàng</h2>
           <div>
             <label className="block font-semibold mb-1" htmlFor="name">Họ và tên <span className="text-red-500">*</span></label>
             <div className="relative">
@@ -79,7 +79,7 @@ const Checkout = () => {
                 value={form.name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-400' : 'border-gray-300'}`}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-rose-500 ${errors.name ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Nhập họ và tên"
                 required
               />
@@ -98,7 +98,7 @@ const Checkout = () => {
                 value={form.phone}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-rose-500 ${errors.phone ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Nhập số điện thoại"
                 required
                 pattern="0[0-9]{9,10}"
@@ -119,7 +119,7 @@ const Checkout = () => {
                 value={form.address}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${errors.address ? 'border-red-400' : 'border-gray-300'}`}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-rose-500 ${errors.address ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Nhập địa chỉ nhận hàng"
                 required
               />
@@ -136,15 +136,15 @@ const Checkout = () => {
                 rows={3}
                 value={form.note}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                placeholder="Ghi chú cho đơn hàng (tuỳ chọn)"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-rose-500 border-gray-300"
+                placeholder="Ghi chú (màu/size mong muốn, đặc điểm bé...)"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 bg-blue-600 text-white text-xl font-bold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-3 shadow-lg mt-4"
+            className="w-full py-4 bg-rose-600 text-white text-xl font-bold rounded-lg hover:bg-rose-700 transition flex items-center justify-center gap-3 shadow-lg mt-4"
           >
             {submitting ? 'Đang xử lý...' : 'Xác nhận đặt hàng'}
           </button>
@@ -165,7 +165,7 @@ const Checkout = () => {
                     <div className="font-semibold text-gray-900 truncate">{item.title}</div>
                     <div className="text-sm text-gray-500">SL: {item.quantity} x {item.price}</div>
                   </div>
-                  <div className="font-bold text-blue-600 whitespace-nowrap">
+                  <div className="font-bold text-rose-600 whitespace-nowrap">
                     {(parseInt(item.price.toString().replace(/[^\d]/g, '')) * item.quantity).toLocaleString()} đ
                   </div>
                 </li>

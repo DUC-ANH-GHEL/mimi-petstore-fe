@@ -4,9 +4,9 @@ import { FaShoppingCart, FaHeart, FaShare, FaPhoneAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../components/Toast/ToastContext';
-import { logo_url } from '../../config/api';
+import { storefrontProducts, formatVnd } from '../../data/storefrontMock';
 
-const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1770981822/logo_d2wmlf.png';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -16,67 +16,58 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [flyingImage, setFlyingImage] = useState(null);
 
-  // Fake product data - replace with API call
-  const product = {
-    id: parseInt(id),
-    name: 'Xi lanh thủy lực 2 chiều',
-    description: 'Xi lanh thủy lực 2 chiều, hành trình 200mm, đường kính 50mm',
-    price: 2500000,
-    category: 'cylinder',
-    images: [
-      IMAGE_DEFAULT_URL,
-      IMAGE_DEFAULT_URL,
-      IMAGE_DEFAULT_URL,
-      IMAGE_DEFAULT_URL,
-    ],
-    specifications: [
-      { label: 'Hành trình', value: '200mm' },
-      { label: 'Đường kính', value: '50mm' },
-      { label: 'Áp suất làm việc', value: '200 bar' },
-      { label: 'Nhiệt độ làm việc', value: '-20°C đến +80°C' },
-      { label: 'Môi trường làm việc', value: 'Dầu thủy lực ISO VG 32-68' },
-      { label: 'Vật liệu', value: 'Thép hợp kim, thép không gỉ' },
-    ],
-    features: [
-      'Thiết kế 2 chiều, hoạt động mượt mà',
-      'Độ bền cao, chống ăn mòn',
-      'Dễ dàng bảo trì và thay thế',
-      'Đạt tiêu chuẩn ISO 9001:2015',
-      'Bảo hành 12 tháng',
-    ],
-  };
+  const productId = Number(id);
+  const product = storefrontProducts.find((p) => p.id === productId);
 
-  // Related products - replace with API call
-  const relatedProducts = [
-    {
-      id: 2,
-      name: 'Xi lanh thủy lực 1 chiều',
-      price: 1800000,
-      image: IMAGE_DEFAULT_URL
-    },
-    {
-      id: 3,
-      name: 'Xi lanh thủy lực mini',
-      price: 1200000,
-      image: IMAGE_DEFAULT_URL
-    },
-    {
-      id: 4,
-      name: 'Xi lanh thủy lực công nghiệp',
-      price: 3500000,
-      image: IMAGE_DEFAULT_URL
-    },
+  const relatedProducts = product
+    ? storefrontProducts
+        .filter((p) => p.category_id === product.category_id && p.id !== product.id)
+        .slice(0, 4)
+    : [];
+
+  const specifications = [
+    { label: 'Chất liệu', value: 'Mềm, thoáng, dễ vệ sinh' },
+    { label: 'Form', value: 'Ôm vừa, dễ vận động' },
+    { label: 'Phù hợp', value: 'Đi dạo / chụp hình / đi chơi' },
+    { label: 'Bảo quản', value: 'Giặt nhẹ, phơi mát' },
+  ];
+
+  const features = [
+    'Chất vải “mặc là thích” — mềm & không cấn',
+    'Dễ phối: lên outfit nhanh trong 10 giây',
+    'Đường may gọn gàng, bền',
+    'Hợp nhiều dáng — tư vấn size nhanh',
   ];
 
   const handleAddToCart = (e) => {
     if (e) e.preventDefault();
+    if (!product) return;
     addToCart({
       title: product.name,
-      price: product.price.toLocaleString() + 'đ',
-      image: product.images[selectedImage]
+      price: formatVnd(product.price),
+      image: product.images?.[selectedImage] || product.images?.[0] || IMAGE_DEFAULT_URL
     });
     if (showToast) showToast('Đã thêm vào giỏ hàng!', 'success');
   };
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-32 pb-12">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="bg-white rounded-2xl shadow p-8 text-center">
+            <h1 className="text-2xl font-extrabold text-gray-900">Không tìm thấy sản phẩm</h1>
+            <p className="mt-2 text-gray-600">Sản phẩm bạn đang xem không tồn tại hoặc đã bị ẩn.</p>
+            <Link
+              to="/products"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-rose-600 px-6 py-3 font-semibold text-white hover:bg-rose-700 transition"
+            >
+              Quay lại shop
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-32 pb-12">
@@ -85,7 +76,7 @@ const ProductDetail = () => {
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-8">
           <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
           <span>/</span>
-          <Link to="/products" className="hover:text-blue-600">Sản phẩm</Link>
+          <Link to="/products" className="hover:text-rose-600">Shop</Link>
           <span>/</span>
           <span className="text-gray-900">{product.name}</span>
         </div>
@@ -95,7 +86,7 @@ const ProductDetail = () => {
           <div className="space-y-4">
             <div className="relative aspect-square rounded-lg overflow-hidden bg-white shadow-sm">
               <img
-                src={product.images[selectedImage]}
+                src={product.images?.[selectedImage] || product.images?.[0] || IMAGE_DEFAULT_URL}
                 alt={product.name}
                 className="w-full h-full object-contain"
               />
@@ -103,7 +94,7 @@ const ProductDetail = () => {
                 className="absolute top-4 right-4 p-2 bg-white rounded-full shadow hover:bg-gray-100 transition"
                 onClick={handleAddToCart}
               >
-                <FaShoppingCart className="text-blue-600" />
+                <FaShoppingCart className="text-rose-600" />
               </button>
             </div>
             <div className="grid grid-cols-4 gap-4">
@@ -112,7 +103,7 @@ const ProductDetail = () => {
                   key={index}
                   onClick={() => setSelectedImage(index)}
                   className={`aspect-square rounded-lg overflow-hidden border-2 ${
-                    selectedImage === index ? 'border-blue-600' : 'border-transparent'
+                    selectedImage === index ? 'border-rose-600' : 'border-transparent'
                   }`}
                 >
                   <img
@@ -133,8 +124,8 @@ const ProductDetail = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <span className="text-3xl font-bold text-blue-600">
-                {product.price.toLocaleString()} đ
+              <span className="text-3xl font-bold text-rose-600">
+                {formatVnd(product.price)}
               </span>
               <div className="flex items-center space-x-2">
                 <button
@@ -156,7 +147,7 @@ const ProductDetail = () => {
             {/* Large Add to Cart Button */}
             <button
               onClick={handleAddToCart}
-              className="w-full py-4 bg-blue-600 text-white text-xl font-bold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-3 shadow-lg"
+              className="w-full py-4 bg-rose-600 text-white text-xl font-bold rounded-lg hover:bg-rose-700 transition flex items-center justify-center gap-3 shadow-lg"
               style={{ marginTop: '1.5rem' }}
             >
               <FaShoppingCart size={24} /> Thêm vào giỏ hàng
@@ -176,7 +167,7 @@ const ProductDetail = () => {
             <div className="border-t border-gray-200 pt-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông số kỹ thuật</h2>
               <div className="grid grid-cols-2 gap-4">
-                {product.specifications.map((spec, index) => (
+                {specifications.map((spec, index) => (
                   <div key={index} className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">{spec.label}</span>
                     <span className="font-medium">{spec.value}</span>
@@ -188,9 +179,9 @@ const ProductDetail = () => {
             <div className="border-t border-gray-200 pt-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Tính năng nổi bật</h2>
               <ul className="space-y-2">
-                {product.features.map((feature, index) => (
+                {features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                    <span className="w-2 h-2 bg-rose-600 rounded-full"></span>
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -199,10 +190,10 @@ const ProductDetail = () => {
 
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <FaPhoneAlt className="text-blue-600" />
+                <FaPhoneAlt className="text-rose-600" />
                 <div>
                   <p className="text-sm text-gray-600">Cần tư vấn thêm?</p>
-                  <a href="tel:0966201140" className="text-blue-600 font-semibold hover:underline">
+                  <a href="tel:0966201140" className="text-rose-600 font-semibold hover:underline">
                     0966 201 140
                   </a>
                 </div>
@@ -226,7 +217,7 @@ const ProductDetail = () => {
                 <Link to={`/products/${product.id}`} className="block">
                   <div className="relative">
                     <img
-                      src={product.image}
+                      src={product.images?.[0] || IMAGE_DEFAULT_URL}
                       alt={product.name}
                       className="w-full h-48 object-cover"
                     />
@@ -235,26 +226,25 @@ const ProductDetail = () => {
                       onClick={(e) => {
                         e.preventDefault();
                         addToCart({
-                          id: product.id,
                           title: product.name,
-                          price: product.price,
-                          image: product.image,
-                          quantity: 1
+                          price: formatVnd(product.price),
+                          image: product.images?.[0] || IMAGE_DEFAULT_URL
                         });
+                        if (showToast) showToast('Đã thêm vào giỏ hàng!', 'success');
                       }}
                     >
-                      <FaShoppingCart className="text-blue-600" />
+                      <FaShoppingCart className="text-rose-600" />
                     </button>
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-blue-600">
-                        {product.price.toLocaleString()} đ
+                      <span className="text-lg font-bold text-rose-600">
+                        {formatVnd(product.price)}
                       </span>
                       <Link 
                         to={`/products/${product.id}`}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition"
                       >
                         Chi tiết
                       </Link>

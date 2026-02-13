@@ -1,130 +1,71 @@
-function FooterCompany() {
+import { Link } from 'react-router-dom';
+
+function Footer() {
   return (
-    <>
-      {/* PHẦN CHÍNH - NỀN VÀNG NHẠT */}
-      <footer style={{
-        backgroundColor: "#ffff80",
-        padding: "20px 10px",
-        textAlign: "center",
-        fontSize: "16px",
-        lineHeight: "1.7",
-        color: "#000"
-      }}>
-        <div>
-          <h2 style={{ fontWeight: "normal", fontSize: "22px", marginBottom: "15px", color: "#444" }}>
-            KỸ THUẬT, PHỤ TÙNG MÁY CƠ GIỚI
-          </h2>
+    <footer className="bg-gray-900 text-gray-200">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-2">
+            <div className="text-2xl font-extrabold text-white">MiMi Petwear</div>
+            <p className="mt-3 text-gray-300 max-w-xl">
+              Outfit & phụ kiện cho thú cưng theo vibe streetwear — mềm, xịn, dễ phối.
+              Mặc lên là muốn chụp hình ngay.
+            </p>
 
-          <div style={{ fontWeight: "bold" }}>
-            Hotline đặt mua hàng:{" "}
-            <span style={{ color: "red" }}><a href="tel:0966 201 140">0966 201 140</a> Mr Bá Đức</span>
+            <div className="mt-5 flex flex-col sm:flex-row gap-2 sm:items-center">
+              <a
+                href="tel:0966201140"
+                className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-5 py-3 font-semibold text-white hover:bg-rose-700 transition"
+              >
+                Hotline: 0966 201 140
+              </a>
+              <a
+                href="mailto:contact@mimipetwear.vn"
+                className="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 font-semibold text-white hover:bg-white/15 transition"
+              >
+                Email: contact@mimipetwear.vn
+              </a>
+            </div>
           </div>
 
           <div>
-            Email:{" "}
-            <a href="mailto:kythuatmayktm@gmail.com" style={{ color: "#0000ff", fontWeight: "bold" }}>
-              kythuatmayktm@gmail.com
-            </a>
-          </div>
-
-          <div style={{ fontWeight: "bold", margin: "10px 0" }}>
-            Địa chỉ vp - Kho phát hàng
-          </div>
-
-          <div>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Hà Nội:</span>{" "}
-            27.12 ICID Complex Lê Trọng Tấn - Hà Đông - Hà Nội
-          </div>
-
-          <div>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Thanh Hóa:</span>{" "}
-            TT Quán Lào - Yên Định - Thanh Hóa
+            <div className="text-sm font-bold text-white tracking-wider">MUA SẮM</div>
+            <ul className="mt-4 space-y-2">
+              <li>
+                <Link to="/products" className="hover:text-white">Shop sản phẩm</Link>
+              </li>
+              <li>
+                <Link to="/checkout" className="hover:text-white">Thanh toán</Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-white">Tư vấn size</Link>
+              </li>
+            </ul>
           </div>
 
           <div>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Nghệ An:</span>{" "}
-            Ngã 4 Đồng Hiếu Đường HCM - Thái Hòa - Nghệ An
-          </div>
-
-          <div>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Bình Dương:</span>{" "}
-            Khu phố Phú Nghị, Phường Hòa Lợi, thị xã Bến Cát, tỉnh Bình Dương
-          </div>
-
-          <div>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Cần Thơ:</span>{" "}
-            Khu phố Thới An 3, Phường Thuận An, Quận Thốt Nốt, TP Cần Thơ
-          </div>
-
-          <div style={{ fontWeight: "bold", margin: "15px 0 5px" }}>
-            Tư vấn Kỹ thuật Máy:
-          </div>
-
-          <div>
-            <b>Kỹ thuật máy John Deere:</b> 0398 490 986
-          </div>
-
-          <div>
-            <b>Kỹ thuật máy Kubota:</b> 0904 987 558
-          </div>
-
-          <div>
-            <b>Kỹ thuật máy Yanmar:</b> 097 234 9545
-          </div>
-
-          <div style={{ marginTop: "20px" }}>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Kythuatmay.vn</span>
-            <br/>
-            <span style={{ color: "#0000ff", fontWeight: "bold" }}>Thuyluc.shop</span>
-          </div>
-
-          <div>
-            Kho kỹ thuật máy và phụ tùng trên tay của bạn!
-          </div>
-
-          <div style={{ marginTop: "10px", fontWeight: "bold" }}>
-            CÔNG TY TNHH KỸ THUẬT MÁY KTM
-          </div>
-
-          <div style={{ fontSize: "14px", marginBottom: "10px" }}>
-            Giấy phép kinh doanh số 2802799630 do Sở KHĐT T. Thanh Hóa cấp ngày 02/10/2019
+            <div className="text-sm font-bold text-white tracking-wider">HỖ TRỢ</div>
+            <ul className="mt-4 space-y-2">
+              <li>
+                <a className="hover:text-white" href="#">Chính sách đổi trả</a>
+              </li>
+              <li>
+                <a className="hover:text-white" href="#">Vận chuyển</a>
+              </li>
+              <li>
+                <a className="hover:text-white" href="#">Hướng dẫn chọn size</a>
+              </li>
+            </ul>
           </div>
         </div>
-      </footer>
 
-      {/* PHẦN DƯỚI - NỀN VÀNG ĐẬM */}
-      <div style={{
-        backgroundColor: "#ffc107",
-        color: "#fff",
-        padding: "10px 15px",
-        fontSize: "14px",
-        textAlign: "center",
-        display: "flex",
-        justifyContent: "space-evenly",
-        alignItems: "center",
-        flexWrap: "wrap"
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "5px" }}>
-          <a href="https://kythuatmay.vn/chinh-sach-quy-dinh-chung" style={{ color: "#fff", textDecoration: "none" }}>Chính sách quy định chung</a>
-          <a href="https://kythuatmay.vn/chinh-sach-bao-mat" style={{ color: "#fff", textDecoration: "none" }}>Chính sách bảo mật</a>
+        <div className="mt-10 border-t border-white/10 pt-6 text-sm text-gray-400 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div>© {new Date().getFullYear()} MiMi Petwear. All rights reserved.</div>
+          <div className="text-gray-500">Made for pets. Designed for style.</div>
         </div>
-
-        <div style={{ fontSize: "14px", color: "#fff", textAlign: "center" }}>
-          CÔNG TY TNHH KỸ THUẬT MÁY KTM
-          <br />
-          Giấy phép kinh doanh số 2802799630 do Sở KHĐT T. Thanh Hóa cấp ngày 02/10/2019
-        </div>
-
-        <a href="http://online.gov.vn/Home/WebDetails/61330">
-          <img
-            src="https://res.cloudinary.com/diwxfpt92/image/upload/v1749379288/logoSaleNoti_whjtfz.png"
-            alt="giấy phép"
-            style={{ height: "50px" }}
-          />
-        </a>
       </div>
-    </>
+    </footer>
   );
 }
 
-export default FooterCompany;
+export default Footer;

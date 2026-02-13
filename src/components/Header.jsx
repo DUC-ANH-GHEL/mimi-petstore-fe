@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { HiMenu, HiX } from 'react-icons/hi';
 
-const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1749052964/products/ppe92dmlfy1eticfpdam.jpg';
+const IMAGE_DEFAULT_URL = 'https://res.cloudinary.com/diwxfpt92/image/upload/v1770981822/logo_d2wmlf.png';
 
 const Header = () => {
   const { cart, removeFromCart, clearCart } = useCart();
@@ -32,11 +32,11 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-md">
       {/* Top bar with contact info */}
-      <div className="bg-blue-900 text-white py-2">
+      <div className="bg-gray-900 text-white py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center text-sm">
           <div className="flex items-center gap-4">
             <a href="tel:0966201140" className="flex items-center gap-2 hover:text-blue-200 transition-colors">
-              <FaPhoneAlt className="text-blue-300" />
+              <FaPhoneAlt className="text-rose-300" />
               <span>Hotline: 0966 201 140</span>
             </a>
             {/* <a href="mailto:kythuatmayktm@gmail.com" className="hover:text-blue-200 transition-colors">
@@ -44,8 +44,8 @@ const Header = () => {
             </a> */}
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/about" className="hover:text-blue-200 transition-colors">Giới thiệu</Link>
-            <Link to="/contact" className="hover:text-blue-200 transition-colors">Liên hệ</Link>
+            <Link to="/products" className="hover:text-rose-200 transition-colors">Shop</Link>
+            <Link to="/contact" className="hover:text-rose-200 transition-colors">Liên hệ</Link>
           </div>
         </div>
       </div>
@@ -63,17 +63,16 @@ const Header = () => {
               />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-gray-900">MiMi PetStore</h1>
-              <p className="text-sm text-gray-600">Kỹ thuật, Phụ tùng máy cơ giới</p>
+              <h1 className="text-2xl font-extrabold text-gray-900">MiMi Petwear</h1>
+              <p className="text-sm text-gray-600">Outfit & phụ kiện xịn cho thú cưng</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Trang chủ</Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Sản phẩm</Link>
-            <Link to="/services" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Dịch vụ</Link>
-            <Link to="/news" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Tin tức</Link>
+            <Link to="/" className="text-gray-700 hover:text-rose-600 font-medium transition-colors">Trang chủ</Link>
+            <Link to="/products" className="text-gray-700 hover:text-rose-600 font-medium transition-colors">Shop</Link>
+            <Link to="/contact" className="text-gray-700 hover:text-rose-600 font-medium transition-colors">Liên hệ</Link>
           </nav>
 
           {/* Hamburger for mobile */}
@@ -92,7 +91,7 @@ const Header = () => {
               onClick={() => setCartOpen((v) => !v)}
               aria-label="Giỏ hàng"
             >
-              <FaShoppingCart size={24} className="text-blue-600 cart-fly-target" />
+              <FaShoppingCart size={24} className="text-rose-600 cart-fly-target" />
               {cart.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold border-2 border-white">
                   {cart.reduce((sum, p) => sum + p.quantity, 0)}
@@ -101,7 +100,7 @@ const Header = () => {
             </button>
             {cartOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-200 animate-fadeIn">
-                <div className="px-4 py-2 font-bold text-lg text-blue-700 border-b border-gray-100">Giỏ hàng</div>
+                <div className="px-4 py-2 font-bold text-lg text-rose-700 border-b border-gray-100">Giỏ hàng</div>
                 {cart.length === 0 ? (
                   <div className="px-4 py-6 text-center text-gray-500">Chưa có sản phẩm nào</div>
                 ) : (
@@ -126,7 +125,7 @@ const Header = () => {
                     </div>
                     <div className="px-4 pb-2 flex gap-2">
                       <button
-                        className="flex-1 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
+                        className="flex-1 py-2 rounded bg-rose-600 text-white font-bold hover:bg-rose-700 transition"
                         onClick={() => { setCartOpen(false); navigate('/checkout'); }}
                       >
                         Thanh toán
@@ -154,11 +153,8 @@ const Header = () => {
             </button>
             <nav className="flex flex-col gap-4 text-lg font-medium">
               <Link to="/" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Trang chủ</Link>
-              <Link to="/products" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Sản phẩm</Link>
-              <Link to="/services" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Dịch vụ</Link>
-              <Link to="/news" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Tin tức</Link>
-              <Link to="/about" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Giới thiệu</Link>
-              <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="hover:text-blue-600">Liên hệ</Link>
+              <Link to="/products" onClick={() => setMobileNavOpen(false)} className="hover:text-rose-600">Shop</Link>
+              <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="hover:text-rose-600">Liên hệ</Link>
             </nav>
           </div>
           <div className="flex-1" onClick={() => setMobileNavOpen(false)} />
