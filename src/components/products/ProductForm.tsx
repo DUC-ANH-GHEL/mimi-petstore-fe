@@ -88,7 +88,6 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [initialStock, setInitialStock] = useState<number>(0);
 
   // Khởi tạo giá trị form
   const [formData, setFormData] = useState<ProductFormData>({
@@ -223,6 +222,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       'price',
       'sale_price',
       'affiliate',
+      'stock',
       'weight',
       'length',
       'width',
@@ -325,15 +325,15 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           onSuccess();
         }
       } else {
-        const dataForCreate: ProductFormData = { ...dataForValidation, stock: initialStock };
-        const created = await createProduct(dataForCreate);
+        const created = await createProduct(dataForValidation);
 
         // If backend didn't set stock on create, set initial stock via PATCH (delta-based)
         const createdId = Number(created?.id);
         const createdStock = typeof created?.stock === 'number' ? Number(created.stock) : undefined;
-        if (Number.isFinite(createdId) && initialStock > 0 && createdStock !== initialStock) {
+        const desiredStock = Number(dataForValidation.stock ?? 0);
+        if (Number.isFinite(createdId) && desiredStock > 0 && createdStock !== desiredStock) {
           try {
-            const delta = typeof createdStock === 'number' ? (initialStock - createdStock) : initialStock;
+            const delta = typeof createdStock === 'number' ? (desiredStock - createdStock) : desiredStock;
             if (delta !== 0) {
               await updateProductStock(createdId, delta);
             }
@@ -668,8 +668,9 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
             <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Tồn kho ban đầu</label>
             <input
               type="number"
-              value={initialStock}
-              onChange={(e) => setInitialStock(Number(e.target.value))}
+              name="stock"
+              value={Number(formData.stock ?? 0)}
+              onChange={handleInputChange}
               className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
               placeholder="VD: 50"
               min={0}

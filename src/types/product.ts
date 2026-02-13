@@ -43,21 +43,26 @@ export interface ProductFormData {
   metaTitle: string;
   metaDescription: string;
 
-  variants?: Array<{
-    sku?: string;
-    size?: string;
-    color?: string;
-    material?: string;
-    price?: number;
-    sale_price?: number;
-    stock?: number;
-    is_active?: boolean;
-  }>;
+  // OpenAPI expects `variants` as a JSON string ("JSON array of variants").
+  // We keep a flexible type so UI can work with structured variants too.
+  variants?:
+    | string
+    | Array<{
+        sku?: string;
+        size?: string;
+        color?: string;
+        material?: string;
+        price?: number;
+        sale_price?: number;
+        stock?: number;
+        is_active?: boolean;
+      }>;
 }
 
 export interface ProductFormDataUpdate extends ProductFormData {
   id: number;
-  listImageCurrent: string[];
+  // Kept for UI compatibility; backend ProductUpdate no longer requires this.
+  listImageCurrent?: string[];
 }
 
 export interface FormError {

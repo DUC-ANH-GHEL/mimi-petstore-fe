@@ -43,9 +43,9 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
       formData.append('currency', String(productData.currency));
     }
     formData.append('sku', productData.sku);
-    formData.append('affiliate', String(productData.affiliate ?? 0));
+    formData.append('affiliate', String(Math.trunc(Number(productData.affiliate ?? 0))));
     if (typeof productData.stock === 'number') {
-      formData.append('stock', String(productData.stock));
+      formData.append('stock', String(Math.trunc(productData.stock)));
     }
     formData.append('weight', productData.weight.toString());
     formData.append('length', productData.length.toString());
@@ -61,9 +61,12 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     if (productData.pet_type) formData.append('pet_type', String(productData.pet_type));
     if (productData.season) formData.append('season', String(productData.season));
 
-    if (Array.isArray(productData.variants) && productData.variants.length > 0) {
-      // Some backends accept nested arrays as a JSON string field in multipart
-      formData.append('variants', JSON.stringify(productData.variants));
+    if (productData.variants !== undefined && productData.variants !== null) {
+      if (typeof productData.variants === 'string') {
+        formData.append('variants', productData.variants);
+      } else if (Array.isArray(productData.variants)) {
+        formData.append('variants', JSON.stringify(productData.variants));
+      }
     }
 
     // Only append File images if present (UI types currently store image URLs as strings)
@@ -87,26 +90,37 @@ export const updateProduct = async (productUpdate: ProductFormDataUpdate) : Prom
   try {
     // OpenAPI: PUT /api/v1/products/{product_id} (application/json)
     // Note: image updates are handled separately via /products/{product_id}/images endpoints.
-    const body = {
-      id: productUpdate.id,
+    const body: any = {
       name: productUpdate.name,
       slug: productUpdate.slug,
-      description: productUpdate.description ?? null,
-      price: Number(productUpdate.price),
       sku: productUpdate.sku,
-      affiliate: Number(productUpdate.affiliate ?? 0),
+      description: productUpdate.description ? String(productUpdate.description) : null,
+      price: Number(productUpdate.price),
+      sale_price: productUpdate.sale_price === null || productUpdate.sale_price === undefined ? null : Number(productUpdate.sale_price),
+      currency: productUpdate.currency ? String(productUpdate.currency) : 'VND',
+      stock: productUpdate.stock === null || productUpdate.stock === undefined ? 0 : Number(productUpdate.stock),
       weight: Number(productUpdate.weight),
       length: Number(productUpdate.length),
       width: Number(productUpdate.width),
       height: Number(productUpdate.height),
-      is_active: Boolean(productUpdate.is_active),
       category_id: Number(productUpdate.category_id),
-
-      // Keep compatibility with the backend's ProductUpdate schema
-      listImageCurrent: Array.isArray(productUpdate.listImageCurrent) ? productUpdate.listImageCurrent : [],
-      listImageNew: [],
-      images: [],
+      is_active: Boolean(productUpdate.is_active),
+      affiliate: Number(productUpdate.affiliate ?? 0),
+      brand: productUpdate.brand ? String(productUpdate.brand) : null,
+      material: productUpdate.material ? String(productUpdate.material) : null,
+      size: productUpdate.size ? String(productUpdate.size) : null,
+      color: productUpdate.color ? String(productUpdate.color) : null,
+      pet_type: productUpdate.pet_type ? String(productUpdate.pet_type) : null,
+      season: productUpdate.season ? String(productUpdate.season) : null,
     };
+
+    if (productUpdate.variants !== undefined) {
+      if (typeof productUpdate.variants === 'string') {
+        body.variants = productUpdate.variants;
+      } else if (Array.isArray(productUpdate.variants)) {
+        body.variants = JSON.stringify(productUpdate.variants);
+      }
+    }
 
     const response = await apiClient.put(`/products/${productUpdate.id}`, body);
     return response.data;
