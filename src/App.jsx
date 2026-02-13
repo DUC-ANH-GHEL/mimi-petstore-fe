@@ -17,6 +17,7 @@ import AdminLoginPage from './pages/admin/Login'
 import PrivateRoute from './components/PrivateRoute';
 import CreateProduct from './pages/admin/Product/CreateProduct'
 import ProductDetailPage from './pages/admin/Product/ProductDetailPage'
+import CreateCategory from './pages/admin/Category/CreateCategory'
 import { CartProvider } from './contexts/CartContext';
 
 
@@ -51,6 +52,7 @@ function App() {
           <Route path="products" element={<Products />} />
           <Route path="products/create" element={<CreateProduct />} />
           <Route path="product/update/:id" element={<CreateProduct />} />
+          <Route path="categories/create" element={<CreateCategory />} />
           <Route path="order" element={<OrderCreate />} />
           <Route path="product/:id" element={<ProductDetailPage />} />
         </Route>

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Package, ShoppingCart, X, Menu, LogOut, Plus } from 'lucide-react';
+import { Home, Package, ShoppingCart, X, Menu, LogOut, Plus, Tag } from 'lucide-react';
 import { logo_url } from '../../config/api';
 import { logout } from '../../services/authService';
 
@@ -19,6 +19,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
     { name: 'Dashboard', icon: <Home size={20} />, url: "/admin" },
     { name: 'Sản phẩm', icon: <Package size={20} />, url: "/admin/products" },
     { name: 'Tạo sản phẩm', icon: <Plus size={20} />, url: "/admin/products/create" },
+    { name: 'Tạo danh mục', icon: <Tag size={20} />, url: "/admin/categories/create" },
     { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/admin/order" },
   ];
 
