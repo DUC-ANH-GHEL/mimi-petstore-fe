@@ -12,6 +12,7 @@ import LoadingOverlay from '../common/LoadingOverlay';
 import { BadgeCheck, Tag, DollarSign, Info, Weight, Maximize2, Percent, Save, XCircle, Link2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { logo_url } from '../../config/api';
+import { parseApiError } from '../../utils/apiError';
 
 interface ProductFormProps {
   onSuccess?: () => void;
@@ -400,7 +401,17 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
       }
     } catch (error) {
       console.error('Lỗi khi xử lý sản phẩm:', error);
-      showToast('Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+      const parsed = parseApiError(error);
+
+      if (parsed.fieldErrors) {
+        setErrors((prev) => ({ ...prev, ...parsed.fieldErrors }));
+      }
+
+      if (parsed.status === 401) {
+        showToast('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.', 'error', 5000);
+      } else {
+        showToast(parsed.message || 'Có lỗi xảy ra. Vui lòng thử lại.', 'error', 6000);
+      }
     } finally {
       setIsSubmitting(false);
     }

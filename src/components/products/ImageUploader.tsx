@@ -11,20 +11,33 @@ interface ImageUploaderProps {
 const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProps) => {
   const [images, setImages] = useState<ImageItem[]>([...initialImages]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     setImages([...initialImages])
   }, [initialImages])
   // Tạo previews khi images thay đổi
   useEffect(() => {
-    // Xóa previews cũ để tránh memory leak
-    previews.forEach(URL.revokeObjectURL);
+    // Xóa previews cũ để tránh memory leak (chỉ blob URLs)
+    previews.forEach((url) => {
+      if (typeof url === 'string' && url.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      }
+    });
     
     // Tạo previews mới
-    const newPreviews = images.map(file => 
-      typeof file === 'string'
-      ? file
-      :URL.createObjectURL(file));
+    const newPreviews = images.map((file) => {
+      if (typeof file === 'string') return file;
+      try {
+        return URL.createObjectURL(file);
+      } catch {
+        return '';
+      }
+    }).filter(Boolean);
     setPreviews(newPreviews);
     
     // Callback để truyền images ra ngoài
@@ -34,14 +47,49 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
     
     // Cleanup khi component unmount
     return () => {
-      newPreviews.forEach(URL.revokeObjectURL);
+      newPreviews.forEach((url) => {
+        if (typeof url === 'string' && url.startsWith('blob:')) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            // ignore
+          }
+        }
+      });
     };
   }, [images, onImagesUpdate]);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
+      setUploadError(null);
       const filesArray = Array.from(e.target.files);
-      setImages(prev => [...prev, ...filesArray]);
+      const valid: File[] = [];
+      const rejected: string[] = [];
+
+      filesArray.forEach((file) => {
+        const isImage = (file.type ?? '').startsWith('image/');
+        const maxBytes = 5 * 1024 * 1024;
+        if (!isImage) {
+          rejected.push(`${file.name}: không phải ảnh`);
+          return;
+        }
+        if (file.size > maxBytes) {
+          rejected.push(`${file.name}: > 5MB`);
+          return;
+        }
+        valid.push(file);
+      });
+
+      if (rejected.length > 0) {
+        setUploadError(`Ảnh không hợp lệ: ${rejected.join(' | ')}`);
+      }
+
+      if (valid.length > 0) {
+        setImages((prev) => [...prev, ...valid]);
+      }
+
+      // allow selecting same file again
+      e.target.value = '';
     }
   };
 
@@ -93,6 +141,9 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
       </div>
 
       {/* Image preview */}
+      {uploadError && (
+        <div className="mt-2 text-xs text-red-600">{uploadError}</div>
+      )}
       {previews.length > 0 && (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {previews.map((src, index) => (
