@@ -6,6 +6,8 @@ export type CategoryCreatePayload = {
   is_active?: boolean;
 };
 
+export type CategoryUpdatePayload = Partial<CategoryCreatePayload>;
+
 export const createCategory = async (payload: CategoryCreatePayload) => {
   const body: CategoryCreatePayload = {
     name: String(payload.name ?? '').trim(),
@@ -22,5 +24,28 @@ export const createCategory = async (payload: CategoryCreatePayload) => {
 
 export const getCategories = async () => {
   const response = await apiClient.get('/categories/');
+  return response.data;
+};
+
+export const getCategoryById = async (categoryId: number) => {
+  const response = await apiClient.get(`/categories/${categoryId}`);
+  return response.data;
+};
+
+export const updateCategory = async (categoryId: number, payload: CategoryUpdatePayload) => {
+  const body: CategoryUpdatePayload = {
+    ...(payload.name !== undefined ? { name: String(payload.name ?? '').trim() } : {}),
+    ...(payload.description !== undefined
+      ? { description: payload.description === null ? null : String(payload.description) }
+      : {}),
+    ...(payload.is_active !== undefined ? { is_active: payload.is_active } : {}),
+  };
+
+  const response = await apiClient.put(`/categories/${categoryId}`, body);
+  return response.data;
+};
+
+export const deleteCategory = async (categoryId: number) => {
+  const response = await apiClient.delete(`/categories/${categoryId}`);
   return response.data;
 };

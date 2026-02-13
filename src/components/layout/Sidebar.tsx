@@ -19,6 +19,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }: SidebarProps) => {
     { name: 'Dashboard', icon: <Home size={20} />, url: "/admin" },
     { name: 'Sản phẩm', icon: <Package size={20} />, url: "/admin/products" },
     { name: 'Tạo sản phẩm', icon: <Plus size={20} />, url: "/admin/products/create" },
+    { name: 'Danh mục', icon: <Tag size={20} />, url: "/admin/categories" },
     { name: 'Tạo danh mục', icon: <Tag size={20} />, url: "/admin/categories/create" },
     { name: 'Đơn hàng', icon: <ShoppingCart size={20} />, url: "/admin/order" },
   ];

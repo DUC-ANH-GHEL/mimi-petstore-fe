@@ -1,16 +1,19 @@
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, XCircle, Tag } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import LoadingOverlay from '../../../components/common/LoadingOverlay';
 import { useToast } from '../../../components/Toast';
-import { createCategory } from '../../../services/categoryService';
+import { getCategoryById, updateCategory } from '../../../services/categoryService';
 
 type FormError = Record<string, string>;
 
-const CreateCategory = () => {
+const EditCategory = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { id } = useParams();
+
+  const categoryId = useMemo(() => Number(id), [id]);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -25,6 +28,25 @@ const CreateCategory = () => {
     nameInputRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    const load = async () => {
+      if (!Number.isFinite(categoryId) || categoryId <= 0) return;
+      setLoading(true);
+      try {
+        const data = await getCategoryById(categoryId);
+        setName(String(data?.name ?? ''));
+        setDescription(data?.description ? String(data.description) : '');
+        setIsActive(Boolean(data?.is_active));
+      } catch (e) {
+        showToast('Không tải được danh mục', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [categoryId, showToast]);
+
   const validate = (): FormError => {
     const next: FormError = {};
     if (!name.trim()) {
@@ -37,6 +59,12 @@ const CreateCategory = () => {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!Number.isFinite(categoryId) || categoryId <= 0) {
+      showToast('ID danh mục không hợp lệ', 'error');
+      return;
+    }
+
     const nextErrors = validate();
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -47,22 +75,17 @@ const CreateCategory = () => {
     setIsSubmitting(true);
     setLoading(true);
     try {
-      await createCategory({
+      await updateCategory(categoryId, {
         name: name.trim(),
         description: description.trim() ? description.trim() : null,
         is_active: isActive,
       });
 
-      showToast('Tạo danh mục thành công!', 'success');
-      setName('');
-      setDescription('');
-      setIsActive(true);
-      setErrors({});
-
+      showToast('Cập nhật danh mục thành công!', 'success');
       navigate('/admin/categories');
     } catch (error) {
-      console.error('Error creating category:', error);
-      showToast('Không tạo được danh mục. Vui lòng thử lại.', 'error');
+      console.error('Error updating category:', error);
+      showToast('Không cập nhật được danh mục. Vui lòng thử lại.', 'error');
     } finally {
       setLoading(false);
       setIsSubmitting(false);
@@ -71,7 +94,7 @@ const CreateCategory = () => {
 
   return (
     <>
-      <LoadingOverlay isLoading={loading} text="Đang tạo danh mục..." />
+      <LoadingOverlay isLoading={loading} text="Đang cập nhật danh mục..." />
       <motion.form
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,7 +105,7 @@ const CreateCategory = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-sm text-gray-500 dark:text-gray-400">Danh mục sản phẩm</div>
-            <h2 className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">Tạo danh mục mới</h2>
+            <h2 className="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">Cập nhật danh mục</h2>
           </div>
           <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center ring-1 ring-gray-200 dark:ring-gray-800">
             <Tag size={18} className="text-rose-600 dark:text-rose-200" />
@@ -155,7 +178,7 @@ const CreateCategory = () => {
             disabled={isSubmitting}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 font-semibold text-white shadow-sm disabled:opacity-60"
           >
-            <Save size={18} /> {isSubmitting ? 'Đang lưu...' : 'Lưu danh mục'}
+            <Save size={18} /> {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </button>
         </div>
       </motion.form>
@@ -163,4 +186,4 @@ const CreateCategory = () => {
   );
 };
 
-export default CreateCategory;
+export default EditCategory;
