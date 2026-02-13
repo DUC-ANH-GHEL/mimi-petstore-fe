@@ -32,7 +32,10 @@ createProduct = async (productData: ProductFormData): Promise<any> => {
     // OpenAPI: POST /api/v1/products/ (multipart/form-data)
     formData.append('name', productData.name);
     formData.append('slug', productData.slug);
-    formData.append('description', productData.description ?? '');
+    const description = (productData.description ?? '').trim();
+    if (description) {
+      formData.append('description', description);
+    }
     formData.append('price', productData.price.toString());
     formData.append('sku', productData.sku);
     formData.append('affiliate', String(productData.affiliate ?? 0));

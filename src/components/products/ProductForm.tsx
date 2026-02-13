@@ -24,6 +24,11 @@ const productValidationRules: ValidationRules = {
     ...commonRules.name,
     message: 'Tên sản phẩm phải từ 2-100 ký tự'
   },
+  slug: {
+    required: true,
+    minLength: 1,
+    message: 'Slug không được để trống'
+  },
   sku: {
     ...commonRules.sku,
     message: 'Mã SKU không được để trống và chỉ được chứa chữ hoa, số và dấu gạch ngang'
@@ -91,13 +96,13 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
     length: 0,
     width: 0,
     height:0,
+
     stock: 0,
     status: 'active',
     is_active: true,
     category_id: 0,
     labels: [],
     images: [],
-    // specs: [{ key: '', value: '' }],
     specs: [],
     slug: '',
     metaTitle: '',
@@ -266,8 +271,23 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
   // Submit form
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    const validationErrors = validateForm(formData, productValidationRules);
+
+    // OpenAPI requires `slug` on create; ensure it is generated
+    const ensuredSlug = (formData.slug ?? '').trim() || removeVietnameseTones(formData.name)
+      .toLowerCase()
+      .replace(/[^\w\s]/gi, '')
+      .replace(/\s+/g, '-');
+
+    const dataForValidation = ensuredSlug !== formData.slug
+      ? { ...formData, slug: ensuredSlug }
+      : formData;
+
+    if (ensuredSlug !== formData.slug) {
+      setFormData((prev) => ({ ...prev, slug: ensuredSlug }));
+      setFormDataUpdate((prev) => ({ ...prev, slug: ensuredSlug }));
+    }
+
+    const validationErrors = validateForm(dataForValidation, productValidationRules);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       showToast('Vui lòng kiểm tra lại thông tin sản phẩm', 'warning');
@@ -283,7 +303,7 @@ const ProductForm = ({ onSuccess, onCancel, id }: ProductFormProps) => {
           onSuccess();
         }
       } else {
-        const created = await createProduct(formData);
+        const created = await createProduct(dataForValidation);
 
         // OpenAPI doesn't support stock on create; set initial stock via PATCH if provided
         const createdId = Number(created?.id);
