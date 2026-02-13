@@ -1,6 +1,7 @@
 // src/components/products/ImageUploader.tsx
 import { useState, useEffect, ChangeEvent } from 'react';
 import React from "react";
+import imageCompression from 'browser-image-compression';
 
 type ImageItem = File | string; // File mới hoặc URL cũ
 interface ImageUploaderProps {
@@ -13,32 +14,50 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Keep stable object URLs per File to avoid blob: URL churn and revoke-too-early issues
+  const objectUrlMapRef = React.useRef<Map<File, string>>(new Map());
+
   useEffect(() => {
     setImages([...initialImages])
   }, [initialImages])
+
   // Tạo previews khi images thay đổi
   useEffect(() => {
-    // Xóa previews cũ để tránh memory leak (chỉ blob URLs)
-    previews.forEach((url) => {
-      if (typeof url === 'string' && url.startsWith('blob:')) {
+    const map = objectUrlMapRef.current;
+
+    // Revoke object URLs for Files that are no longer in the list
+    const currentFiles = new Set<File>();
+    images.forEach((img) => {
+      if (img instanceof File) currentFiles.add(img);
+    });
+    for (const [file, url] of map.entries()) {
+      if (!currentFiles.has(file)) {
         try {
           URL.revokeObjectURL(url);
         } catch {
           // ignore
         }
+        map.delete(file);
       }
-    });
-    
-    // Tạo previews mới
-    const newPreviews = images.map((file) => {
-      if (typeof file === 'string') return file;
-      try {
-        return URL.createObjectURL(file);
-      } catch {
-        return '';
-      }
-    }).filter(Boolean);
-    setPreviews(newPreviews);
+    }
+
+    // Build previews (reuse existing object URLs)
+    const nextPreviews: string[] = images
+      .map((img) => {
+        if (typeof img === 'string') return img;
+        const existing = map.get(img);
+        if (existing) return existing;
+        try {
+          const created = URL.createObjectURL(img);
+          map.set(img, created);
+          return created;
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean);
+
+    setPreviews(nextPreviews);
     
     // Callback để truyền images ra ngoài
     const files = images.filter(img => img instanceof File) as File[];
@@ -47,50 +66,90 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
     
     // Cleanup khi component unmount
     return () => {
-      newPreviews.forEach((url) => {
-        if (typeof url === 'string' && url.startsWith('blob:')) {
-          try {
-            URL.revokeObjectURL(url);
-          } catch {
-            // ignore
-          }
-        }
-      });
+      // Do not revoke here; revoke is handled by removal + final unmount cleanup below.
     };
   }, [images, onImagesUpdate]);
 
+  // Final unmount cleanup
+  useEffect(() => {
+    return () => {
+      const map = objectUrlMapRef.current;
+      for (const url of map.values()) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      }
+      map.clear();
+    };
+  }, []);
+
+  const compressIfNeeded = async (file: File): Promise<File> => {
+    const maxBytes = 10 * 1024 * 1024;
+    if (file.size <= maxBytes) return file;
+
+    // SVG isn't reliably compressible via canvas; reject if too large
+    if ((file.type ?? '') === 'image/svg+xml') {
+      throw new Error(`${file.name}: SVG > 10MB không hỗ trợ nén`);
+    }
+
+    // Try to compress under 10MB
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 10,
+      maxWidthOrHeight: 2560,
+      useWebWorker: true,
+      initialQuality: 0.85,
+    });
+
+    // Library returns a File; keep original name for UX
+    const result = compressed instanceof File
+      ? compressed
+      : new File([compressed], file.name, { type: file.type || 'image/jpeg' });
+
+    if (result.size > maxBytes) {
+      throw new Error(`${file.name}: không nén xuống <= 10MB (hiện ${(result.size / (1024 * 1024)).toFixed(1)}MB)`);
+    }
+
+    return result;
+  };
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setUploadError(null);
-      const filesArray = Array.from(e.target.files);
-      const valid: File[] = [];
+    if (!e.target.files) return;
+
+    // allow selecting same file again
+    const filesArray = Array.from(e.target.files);
+    e.target.value = '';
+
+    setUploadError(null);
+
+    // Process asynchronously so UI doesn't freeze
+    (async () => {
+      const accepted: File[] = [];
       const rejected: string[] = [];
 
-      filesArray.forEach((file) => {
+      for (const file of filesArray) {
         const isImage = (file.type ?? '').startsWith('image/');
-        const maxBytes = 5 * 1024 * 1024;
         if (!isImage) {
           rejected.push(`${file.name}: không phải ảnh`);
-          return;
+          continue;
         }
-        if (file.size > maxBytes) {
-          rejected.push(`${file.name}: > 5MB`);
-          return;
+        try {
+          const finalFile = await compressIfNeeded(file);
+          accepted.push(finalFile);
+        } catch (err: any) {
+          rejected.push(err?.message ? String(err.message) : `${file.name}: lỗi nén ảnh`);
         }
-        valid.push(file);
-      });
+      }
 
       if (rejected.length > 0) {
-        setUploadError(`Ảnh không hợp lệ: ${rejected.join(' | ')}`);
+        setUploadError(rejected.join(' | '));
       }
 
-      if (valid.length > 0) {
-        setImages((prev) => [...prev, ...valid]);
+      if (accepted.length > 0) {
+        setImages((prev) => [...prev, ...accepted]);
       }
-
-      // allow selecting same file again
-      e.target.value = '';
-    }
+    })();
   };
 
   const removeImage = (index: number) => {
@@ -135,7 +194,7 @@ const ImageUploader = ({ onImagesUpdate, initialImages = [] }: ImageUploaderProp
             <p className="text-sm text-gray-500">
               Kéo thả hoặc click để chọn ảnh
             </p>
-            <p className="text-xs text-gray-500">PNG, JPG, WEBP tối đa 5MB</p>
+            <p className="text-xs text-gray-500">Ảnh &gt; 10MB sẽ tự nén về &le; 10MB</p>
           </div>
         </label>
       </div>
