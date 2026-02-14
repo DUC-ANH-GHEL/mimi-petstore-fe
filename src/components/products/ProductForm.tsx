@@ -164,9 +164,26 @@ const isColorAttr = (name: string) => {
 };
 
 const cartesian = (attrs: AttributeDef[]): Array<Record<string, string>> => {
-  const clean = attrs
-    .map((a) => ({ name: a.name.trim(), values: uniq(a.values) }))
-    .filter((a) => a.name && a.values.length > 0);
+  // Allow user to accidentally add the same attribute name multiple times
+  // (e.g. Size=S and Size=M in separate rows). We group by normalized name
+  // and merge values so variant generation still works.
+  const grouped = new Map<string, { name: string; values: string[] }>();
+  for (const a of attrs) {
+    const name = a.name.trim();
+    if (!name) continue;
+    const key = normalizeAttrName(name);
+    const values = uniq(a.values);
+    if (values.length === 0) continue;
+
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.values = uniq([...existing.values, ...values]);
+    } else {
+      grouped.set(key, { name, values });
+    }
+  }
+
+  const clean = [...grouped.values()];
 
   if (clean.length === 0) return [];
 
@@ -255,8 +272,13 @@ const TagInput = ({
           disabled={disabled}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onBlur={() => commit()}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === ',') {
               e.preventDefault();
               commit();
             }
