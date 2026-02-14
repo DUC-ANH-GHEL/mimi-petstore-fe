@@ -420,6 +420,15 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
 
     // Variants
     if (draft.attributes.length === 0) return 'Vui lòng thêm ít nhất 1 thuộc tính';
+
+    // Keep validation consistent with the variant builder constraints
+    if (attributesForGeneration.errors.tooManyAttrs) return 'Tối đa 3 thuộc tính để tạo biến thể';
+    if (attributesForGeneration.errors.dupName) return 'Tên thuộc tính bị trùng. Vui lòng chỉnh lại.';
+    if (attributesForGeneration.errors.tooManyValues) return 'Mỗi thuộc tính tối đa 20 giá trị';
+    if (attributesForGeneration.errors.hasEmptyName) return 'Tên thuộc tính không được để trống';
+    if (attributesForGeneration.errors.hasEmptyValues) return 'Mỗi thuộc tính cần ít nhất 1 giá trị';
+    if (attributesForGeneration.overLimit) return 'Số biến thể vượt giới hạn 200';
+
     for (const a of draft.attributes) {
       if (!a.name.trim()) return 'Tên thuộc tính không được để trống';
       if (uniq(a.values).length === 0) return `Thuộc tính "${a.name || '(chưa đặt tên)'}" cần ít nhất 1 giá trị`;
@@ -752,11 +761,21 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
         return;
       }
 
-      const combos = cartesian(draft.attributes);
+      // Generate from trimmed/unique attribute list so keys match validation/counting exactly.
+      const attrsForCartesian = attributesForGeneration.list.map((a) => ({ name: a.name, values: a.values }));
+      const combos = cartesian(attrsForCartesian as any);
 
       // Preserve existing edits by combo key
       const byKey = new Map<string, VariantRow>();
-      for (const v of draft.variants) byKey.set(buildVariantKey(v.attributes), v);
+      for (const v of draft.variants) {
+        const normalizedAttrs: Record<string, string> = {};
+        for (const [k, val] of Object.entries(v.attributes || {})) {
+          const kk = String(k || '').trim();
+          if (!kk) continue;
+          normalizedAttrs[kk] = String(val ?? '');
+        }
+        byKey.set(buildVariantKey(normalizedAttrs), { ...v, attributes: normalizedAttrs });
+      }
 
       const productCode = draft.sku.trim();
       const pattern = draft.sku_pattern || '{{product_code}}-{{attribute_values}}';
