@@ -63,7 +63,7 @@ const AdminLayout = () => {
 
   return (
     <div className={darkMode ? 'dark' : ''}>
-      <div className="flex h-screen bg-rose-50/40 dark:bg-gray-950">
+      <div className="flex h-screen bg-gray-50 dark:bg-slate-950">
         <Sidebar sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
         <div
@@ -73,7 +73,7 @@ const AdminLayout = () => {
         >
           <Header sidebarOpen={sidebarOpen} darkMode={darkMode} toggleDarkMode={() => setDarkMode((v) => !v)} />
 
-          <main className="flex-1 overflow-y-auto p-6 pt-24">
+          <main className="flex-1 overflow-y-auto p-6 pt-24 text-gray-900 dark:text-gray-100">
             <Outlet />
           </main>
         </div>

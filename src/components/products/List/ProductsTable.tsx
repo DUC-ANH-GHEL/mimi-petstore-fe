@@ -215,7 +215,7 @@ const ProductsTable = ({
           <select
             value={sort}
             onChange={(e) => onSortChange(e.target.value)}
-            className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+            className="rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
           >
             {sortOptions.map((o) => (
               <option key={o.value} value={o.value}>
@@ -312,7 +312,7 @@ const ProductsTable = ({
                           value={String(p.status || 'active').toLowerCase()}
                           disabled={Boolean(statusBusy[p.id])}
                           onChange={(e) => updateStatusInline(p.id, e.target.value)}
-                          className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1 text-xs"
+                          className="rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-2 py-1 text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
                         >
                           <option value="active">Đang bán</option>
                           <option value="draft">Nháp</option>

@@ -33,7 +33,7 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-gray-950/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 z-30 transition-all"
+      className="fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 z-30 transition-all"
       style={{ marginLeft: sidebarOpen ? 256 : 80 }} // 256 = w-64, 80 = w-20
     >
       <div className="h-16 px-6 flex items-center justify-between">
@@ -47,7 +47,7 @@ const Header = ({ darkMode, toggleDarkMode, sidebarOpen }: HeaderProps) => {
         <div className="flex items-center space-x-4">
           <div className="relative group">
             <Bell size={22} className="text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer transition" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white"></span>
+            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-900"></span>
           </div>
           <button
             onClick={toggleDarkMode}

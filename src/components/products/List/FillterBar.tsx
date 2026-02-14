@@ -82,7 +82,7 @@ const FillterBar = ({
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             placeholder="Tìm theo tên, SKU, slug..."
-            className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-800 dark:text-gray-200"
+            className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
           />
         </div>
 
@@ -133,7 +133,7 @@ const FillterBar = ({
               <select
                 value={filters.status}
                 onChange={(e) => onChange({ status: e.target.value as ProductListFilters['status'] })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="all">Tất cả</option>
                 <option value="active">Đang bán</option>
@@ -147,7 +147,7 @@ const FillterBar = ({
               <select
                 value={filters.category_id}
                 onChange={(e) => onChange({ category_id: e.target.value })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="">Tất cả</option>
                 {categories.map((c) => (
@@ -164,7 +164,7 @@ const FillterBar = ({
                 value={filters.brand}
                 onChange={(e) => onChange({ brand: e.target.value })}
                 placeholder="Brand"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               />
             </div>
 
@@ -173,7 +173,7 @@ const FillterBar = ({
               <select
                 value={filters.has_variants}
                 onChange={(e) => onChange({ has_variants: e.target.value as ProductListFilters['has_variants'] })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="all">Tất cả</option>
                 <option value="true">Có</option>
@@ -186,7 +186,7 @@ const FillterBar = ({
               <select
                 value={filters.stock_status}
                 onChange={(e) => onChange({ stock_status: e.target.value as ProductListFilters['stock_status'] })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="all">Tất cả</option>
                 <option value="in_stock">Còn hàng</option>
@@ -200,7 +200,7 @@ const FillterBar = ({
               <select
                 value={filters.has_affiliate}
                 onChange={(e) => onChange({ has_affiliate: e.target.value as ProductListFilters['has_affiliate'] })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="all">Tất cả</option>
                 <option value="true">Có</option>
@@ -214,7 +214,7 @@ const FillterBar = ({
                 value={filters.min_price}
                 onChange={(e) => onChange({ min_price: e.target.value })}
                 inputMode="numeric"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               />
             </div>
 
@@ -224,7 +224,7 @@ const FillterBar = ({
                 value={filters.max_price}
                 onChange={(e) => onChange({ max_price: e.target.value })}
                 inputMode="numeric"
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               />
             </div>
 
@@ -233,7 +233,7 @@ const FillterBar = ({
               <select
                 value={filters.featured}
                 onChange={(e) => onChange({ featured: e.target.value as ProductListFilters['featured'] })}
-                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="all">Tất cả</option>
                 <option value="true">Nổi bật</option>
@@ -279,7 +279,7 @@ const FillterBar = ({
                   onApplySavedFilter(idx);
                   e.target.value = '';
                 }}
-                className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                className="rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
               >
                 <option value="">Áp dụng filter đã lưu</option>
                 {savedFilters.map((sf, idx) => (
