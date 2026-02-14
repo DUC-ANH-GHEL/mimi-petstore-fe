@@ -135,9 +135,11 @@ const slugify = (value: string) =>
     .trim()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 
 const uniq = (list: string[]) => {
   const seen = new Set<string>();
@@ -295,6 +297,14 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
   const [hydrated, setHydrated] = useState(false);
   const lastLoadedRef = useRef(false);
   const autosaveRef = useRef<number | null>(null);
+
+  const slugAutoRef = useRef({
+    initialized: false,
+    slugLocked: false,
+    seoLocked: false,
+    lastAutoSlug: '',
+    lastAutoSeoSlug: '',
+  });
 
   const draftKey = useMemo(() => (id ? `mimi_admin_product_draft_v1:${id}` : 'mimi_admin_product_draft_v1:new'), [id]);
 
@@ -480,16 +490,57 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
     return () => window.clearTimeout(t);
   }, [id]);
 
-  // Slug auto-generate from name
+  // Init slug auto-state after hydration
   useEffect(() => {
-    setDraft((prev) => {
-      if (prev.slug.trim()) return prev;
-      const s = slugify(prev.name || '');
-      return { ...prev, slug: s, seo_slug: prev.seo_slug || s };
-    });
-    // only when name changes
+    if (!hydrated) return;
+    if (slugAutoRef.current.initialized) return;
+
+    const auto = slugify(draft.name || '');
+    const currentSlug = String(draft.slug || '').trim();
+    const currentSeo = String(draft.seo_slug || '').trim();
+
+    slugAutoRef.current.slugLocked = Boolean(currentSlug) && currentSlug !== auto;
+    slugAutoRef.current.seoLocked = Boolean(currentSeo) && currentSeo !== auto;
+    slugAutoRef.current.lastAutoSlug = auto;
+    slugAutoRef.current.lastAutoSeoSlug = auto;
+    slugAutoRef.current.initialized = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft.name]);
+  }, [hydrated]);
+
+  // Slug auto-generate from name until user edits slug manually
+  useEffect(() => {
+    if (!hydrated) return;
+
+    setDraft((prev) => {
+      const auto = slugify(prev.name || '');
+
+      const currentSlug = String(prev.slug || '').trim();
+      const currentSeo = String(prev.seo_slug || '').trim();
+
+      const shouldAutoSlug =
+        !slugAutoRef.current.slugLocked || !currentSlug || currentSlug === slugAutoRef.current.lastAutoSlug;
+      const shouldAutoSeo =
+        !slugAutoRef.current.seoLocked || !currentSeo || currentSeo === slugAutoRef.current.lastAutoSeoSlug;
+
+      let changed = false;
+      const next = { ...prev };
+
+      if (shouldAutoSlug && currentSlug !== auto) {
+        next.slug = auto;
+        changed = true;
+      }
+      if (shouldAutoSeo && currentSeo !== auto) {
+        next.seo_slug = auto;
+        changed = true;
+      }
+
+      slugAutoRef.current.lastAutoSlug = auto;
+      slugAutoRef.current.lastAutoSeoSlug = auto;
+
+      return changed ? next : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.name, hydrated]);
 
   // mark dirty on changes (after initial hydration)
   useEffect(() => {
@@ -816,8 +867,16 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                 <input
                   value={draft.slug}
                   onChange={(e) => {
-                    setField('slug', e.target.value);
-                    if (!draft.seo_slug) setField('seo_slug', e.target.value);
+                    const next = slugify(e.target.value);
+                    if (next) {
+                      slugAutoRef.current.slugLocked = true;
+                    } else {
+                      slugAutoRef.current.slugLocked = false;
+                    }
+                    setField('slug', next);
+                    if (!slugAutoRef.current.seoLocked && (!draft.seo_slug || draft.seo_slug === slugAutoRef.current.lastAutoSeoSlug)) {
+                      setField('seo_slug', next);
+                    }
                   }}
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
                   placeholder="ao-hoodie-cho-cho"
@@ -1523,7 +1582,15 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                 <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">SEO slug</label>
                 <input
                   value={draft.seo_slug}
-                  onChange={(e) => setField('seo_slug', e.target.value)}
+                  onChange={(e) => {
+                    const next = slugify(e.target.value);
+                    if (next) {
+                      slugAutoRef.current.seoLocked = true;
+                    } else {
+                      slugAutoRef.current.seoLocked = false;
+                    }
+                    setField('seo_slug', next);
+                  }}
                   className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2"
                 />
               </div>
