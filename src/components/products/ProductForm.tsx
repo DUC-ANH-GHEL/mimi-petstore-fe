@@ -164,26 +164,9 @@ const isColorAttr = (name: string) => {
 };
 
 const cartesian = (attrs: AttributeDef[]): Array<Record<string, string>> => {
-  // Allow user to accidentally add the same attribute name multiple times
-  // (e.g. Size=S and Size=M in separate rows). We group by normalized name
-  // and merge values so variant generation still works.
-  const grouped = new Map<string, { name: string; values: string[] }>();
-  for (const a of attrs) {
-    const name = a.name.trim();
-    if (!name) continue;
-    const key = normalizeAttrName(name);
-    const values = uniq(a.values);
-    if (values.length === 0) continue;
-
-    const existing = grouped.get(key);
-    if (existing) {
-      existing.values = uniq([...existing.values, ...values]);
-    } else {
-      grouped.set(key, { name, values });
-    }
-  }
-
-  const clean = [...grouped.values()];
+  const clean = attrs
+    .map((a) => ({ name: a.name.trim(), values: uniq(a.values) }))
+    .filter((a) => a.name && a.values.length > 0);
 
   if (clean.length === 0) return [];
 
@@ -234,18 +217,27 @@ const TagInput = ({
   onChange,
   placeholder,
   disabled,
+  maxItems,
+  onLimitReached,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
+  maxItems?: number;
+  onLimitReached?: () => void;
 }) => {
   const [text, setText] = useState('');
 
   const commit = () => {
     const v = text.trim();
     if (!v) return;
-    onChange(uniq([...value, v]));
+    const next = uniq([...value, v]);
+    if (typeof maxItems === 'number' && maxItems > 0 && next.length > maxItems) {
+      onLimitReached?.();
+      return;
+    }
+    onChange(next);
     setText('');
   };
 
@@ -320,6 +312,11 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
   const lastLoadedRef = useRef(false);
   const autosaveRef = useRef<number | null>(null);
 
+  const [attributesLocked, setAttributesLocked] = useState(false);
+  const [confirmEditAttributes, setConfirmEditAttributes] = useState(false);
+  const [applyBulkToAll, setApplyBulkToAll] = useState(false);
+  const [variantImageAttrName, setVariantImageAttrName] = useState<string>('');
+
   const slugAutoRef = useRef({
     initialized: false,
     slugLocked: false,
@@ -352,10 +349,43 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
     }, 0);
   }, [draft.variants, draft.manage_stock_by_variant]);
 
-  const colorAttributeName = useMemo(() => {
+  const skuExample = useMemo(() => {
+    const productCode = draft.sku.trim();
+    const pattern = draft.sku_pattern || '{{product_code}}-{{attribute_values}}';
+    if (!productCode) return '';
+
+    const firstVariantAttrs = draft.variants?.[0]?.attributes;
+    if (firstVariantAttrs && Object.keys(firstVariantAttrs).length > 0) {
+      return applySkuPattern(pattern, productCode, firstVariantAttrs);
+    }
+
+    const exampleAttrs: Record<string, string> = {};
+    for (const a of draft.attributes) {
+      const name = a.name.trim();
+      if (!name) continue;
+      const first = uniq(a.values)[0];
+      if (!first) continue;
+      exampleAttrs[name] = first;
+    }
+    if (Object.keys(exampleAttrs).length === 0) return '';
+    return applySkuPattern(pattern, productCode, exampleAttrs);
+  }, [draft.attributes, draft.sku, draft.sku_pattern, draft.variants]);
+
+  const defaultVariantImageAttrName = useMemo(() => {
     const found = draft.attributes.find((a) => isColorAttr(a.name));
     return found?.name?.trim() || '';
   }, [draft.attributes]);
+
+  useEffect(() => {
+    // Keep the image-attribute selection stable; default to a color-like attribute.
+    const existingNames = new Set(draft.attributes.map((a) => a.name.trim()).filter(Boolean));
+    setVariantImageAttrName((prev) => {
+      if (prev && existingNames.has(prev)) return prev;
+      if (defaultVariantImageAttrName && existingNames.has(defaultVariantImageAttrName)) return defaultVariantImageAttrName;
+      const first = draft.attributes.find((a) => a.name.trim())?.name?.trim() || '';
+      return first;
+    });
+  }, [defaultVariantImageAttrName, draft.attributes]);
 
   const validate = (): string | null => {
     // TAB 1 requireds
@@ -609,14 +639,22 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
   };
 
   const addAttribute = () => {
-    if (draft.attributes.length >= 5) {
-      showToast('Tối đa 5 thuộc tính', 'warning');
+    if (attributesLocked) {
+      showToast('Thuộc tính đã được khoá sau khi generate. Hãy chọn “Chỉnh sửa thuộc tính”.', 'warning');
+      return;
+    }
+    if (draft.attributes.length >= 3) {
+      showToast('Tối đa 3 thuộc tính', 'warning');
       return;
     }
     setDraft((prev) => ({ ...prev, attributes: [...prev.attributes, { id: newId(), name: '', values: [] }] }));
   };
 
   const removeAttribute = (attrId: string) => {
+    if (attributesLocked) {
+      showToast('Thuộc tính đã được khoá sau khi generate. Hãy chọn “Chỉnh sửa thuộc tính”.', 'warning');
+      return;
+    }
     setDraft((prev) => {
       const nextAttrs = prev.attributes.filter((a) => a.id !== attrId);
       const removed = prev.attributes.find((a) => a.id === attrId);
@@ -634,18 +672,87 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
     });
   };
 
+  // Lock attributes after generate (or when loading an existing product with variants)
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!draft.has_variants) {
+      setAttributesLocked(false);
+      return;
+    }
+    if (draft.variants.length > 0) setAttributesLocked(true);
+  }, [draft.has_variants, draft.variants.length, hydrated]);
+
+  const attributesForGeneration = useMemo(() => {
+    const trimmed = draft.attributes
+      .map((a) => ({ id: a.id, name: a.name.trim(), values: uniq(a.values) }))
+      .filter((a) => a.name || a.values.length > 0);
+
+    const normalizedNames = trimmed.map((a) => normalizeAttrName(a.name));
+    const dupName = normalizedNames.some((n, i) => n && normalizedNames.indexOf(n) !== i);
+    const tooManyAttrs = trimmed.length > 3;
+    const tooManyValues = trimmed.some((a) => a.values.length > 20);
+    const hasEmptyName = trimmed.some((a) => a.values.length > 0 && !a.name);
+    const hasEmptyValues = trimmed.some((a) => a.name && a.values.length === 0);
+
+    // valid means ready for counting/generation (non-empty names + values, no dup names)
+    const valid =
+      trimmed.length > 0 &&
+      !tooManyAttrs &&
+      !tooManyValues &&
+      !dupName &&
+      !hasEmptyName &&
+      !hasEmptyValues &&
+      trimmed.every((a) => a.name && a.values.length > 0);
+
+    const breakdown = valid ? trimmed.map((a) => `${a.values.length} ${a.name}`).join(' × ') : '';
+    const count = valid ? trimmed.reduce((acc, a) => acc * a.values.length, 1) : 0;
+    const overLimit = count > 200;
+
+    return {
+      list: trimmed,
+      valid,
+      count,
+      breakdown,
+      overLimit,
+      errors: {
+        tooManyAttrs,
+        tooManyValues,
+        dupName,
+        hasEmptyName,
+        hasEmptyValues,
+      },
+    };
+  }, [draft.attributes]);
+
   const generateVariants = async () => {
     setIsGenerating(true);
     try {
-      const combos = cartesian(draft.attributes);
-      if (combos.length === 0) {
+      if (!attributesForGeneration.valid) {
+        if (attributesForGeneration.errors.tooManyAttrs) {
+          showToast('Tối đa 3 thuộc tính để tạo biến thể', 'warning');
+          return;
+        }
+        if (attributesForGeneration.errors.dupName) {
+          showToast('Tên thuộc tính bị trùng. Vui lòng chỉnh lại.', 'warning');
+          return;
+        }
+        if (attributesForGeneration.errors.tooManyValues) {
+          showToast('Mỗi thuộc tính tối đa 20 giá trị', 'warning');
+          return;
+        }
         showToast('Chưa đủ thuộc tính/giá trị để tạo biến thể', 'warning');
         return;
       }
-      if (combos.length > 200) {
-        showToast('Tối đa 200 biến thể mỗi lần generate', 'error');
+      if (attributesForGeneration.overLimit) {
+        showToast('Số biến thể vượt giới hạn 200', 'error');
         return;
       }
+      if (!draft.sku.trim()) {
+        showToast('Vui lòng nhập Product code (SKU) trước khi generate', 'warning');
+        return;
+      }
+
+      const combos = cartesian(draft.attributes);
 
       // Preserve existing edits by combo key
       const byKey = new Map<string, VariantRow>();
@@ -674,6 +781,8 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
 
       // Validate combos unique by key already
       setDraft((prev) => ({ ...prev, variants: next }));
+      setSelectedVariantIds([]);
+      setAttributesLocked(true);
     } finally {
       setIsGenerating(false);
     }
@@ -683,18 +792,19 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
 
   const allVariantSelected = draft.variants.length > 0 && draft.variants.every((v) => selectedVariantIds.includes(v.id));
 
-  const effectiveSelected = useMemo(() => {
-    const set = new Set(selectedVariantIds);
-    const selected = draft.variants.filter((v) => set.has(v.id));
-    return selected.length > 0 ? selected : draft.variants;
-  }, [draft.variants, selectedVariantIds]);
+  const ensureBulkTargets = () => {
+    if (applyBulkToAll) return true;
+    if (selectedVariantIds.length > 0) return true;
+    showToast('Chọn ít nhất 1 biến thể hoặc tick “Áp dụng cho tất cả biến thể”', 'warning');
+    return false;
+  };
 
   const bulkSet = (field: 'price' | 'cost_price' | 'stock', value: string) => {
+    if (!ensureBulkTargets()) return;
     setDraft((prev) => {
       const set = new Set(selectedVariantIds);
-      const hasSelection = set.size > 0;
       const next = prev.variants.map((v) => {
-        if (hasSelection && !set.has(v.id)) return v;
+        if (!applyBulkToAll && !set.has(v.id)) return v;
         return { ...v, [field]: value };
       });
       return { ...prev, variants: next };
@@ -702,11 +812,11 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
   };
 
   const bulkAdjustPercent = (percent: number) => {
+    if (!ensureBulkTargets()) return;
     setDraft((prev) => {
       const set = new Set(selectedVariantIds);
-      const hasSelection = set.size > 0;
       const next = prev.variants.map((v) => {
-        if (hasSelection && !set.has(v.id)) return v;
+        if (!applyBulkToAll && !set.has(v.id)) return v;
         const p = Number(v.price);
         if (!Number.isFinite(p) || p <= 0) return v;
         const nextPrice = Math.round(p * (1 + percent / 100));
@@ -716,25 +826,24 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
     });
   };
 
-  const bulkCopySkuPattern = () => {
-    const productCode = draft.sku.trim();
-    const pattern = draft.sku_pattern || '{{product_code}}-{{attribute_values}}';
+  const bulkSetStatus = (status: VariantRow['status']) => {
+    if (!ensureBulkTargets()) return;
     setDraft((prev) => {
       const set = new Set(selectedVariantIds);
-      const hasSelection = set.size > 0;
       const next = prev.variants.map((v) => {
-        if (hasSelection && !set.has(v.id)) return v;
-        return { ...v, sku: applySkuPattern(pattern, productCode, v.attributes) };
+        if (!applyBulkToAll && !set.has(v.id)) return v;
+        return { ...v, status };
       });
       return { ...prev, variants: next };
     });
   };
 
-  const assignImageByColor = (colorValue: string, file: File | null) => {
-    if (!colorAttributeName) return;
+  const assignImageByAttributeValue = (attrValue: string, file: File | null) => {
+    const attrName = variantImageAttrName?.trim();
+    if (!attrName) return;
     setDraft((prev) => {
       const next = prev.variants.map((v) => {
-        if ((v.attributes?.[colorAttributeName] || '') !== colorValue) return v;
+        if ((v.attributes?.[attrName] || '') !== attrValue) return v;
         return { ...v, image: file };
       });
       return { ...prev, variants: next };
@@ -1160,15 +1269,25 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Attribute Builder</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa 5 thuộc tính. Không hard-code.</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa 3 thuộc tính. Mỗi thuộc tính tối đa 20 giá trị. Không trùng tên/value.</div>
                 </div>
-                <button
-                  type="button"
-                  onClick={addAttribute}
-                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 font-semibold"
-                >
-                  + Thêm thuộc tính
-                </button>
+                {attributesLocked ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmEditAttributes(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 font-semibold text-gray-800 dark:text-gray-200"
+                  >
+                    Chỉnh sửa thuộc tính
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={addAttribute}
+                    className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 font-semibold"
+                  >
+                    + Thêm thuộc tính
+                  </button>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -1178,33 +1297,60 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                       <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Tên thuộc tính</label>
                       <input
                         value={a.name}
+                        disabled={attributesLocked}
                         onChange={(e) => {
+                          if (attributesLocked) return;
                           const nextName = e.target.value;
                           setDraft((prev) => {
-                            const nextAttrs = prev.attributes.map((x) => (x.id === a.id ? { ...x, name: nextName } : x));
-                            // keep variant attribute keys in sync (rename)
-                            const oldName = a.name;
-                            const nextVariants = prev.variants.map((v) => {
-                              const attrs = { ...(v.attributes || {}) };
-                              if (oldName && attrs[oldName] !== undefined) {
-                                attrs[nextName] = attrs[oldName];
-                                delete attrs[oldName];
+                            const nextTrim = nextName.trim();
+                            const nextNorm = normalizeAttrName(nextTrim);
+                            if (nextNorm) {
+                              const dup = prev.attributes.some(
+                                (x) => x.id !== a.id && normalizeAttrName(x.name.trim()) === nextNorm,
+                              );
+                              if (dup) {
+                                showToast('Không cho trùng tên thuộc tính', 'warning');
+                                return prev;
                               }
-                              return { ...v, attributes: attrs };
-                            });
-                            return { ...prev, attributes: nextAttrs, variants: nextVariants };
+                            }
+
+                            const oldTrim = a.name.trim();
+                            if (variantImageAttrName && oldTrim && variantImageAttrName === oldTrim) {
+                              setVariantImageAttrName(nextTrim);
+                            }
+
+                            return {
+                              ...prev,
+                              attributes: prev.attributes.map((x) => (x.id === a.id ? { ...x, name: nextName } : x)),
+                            };
                           });
                         }}
                         className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2"
                         placeholder="VD: Size"
                       />
+
+                      <label className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                        <input
+                          type="radio"
+                          name="variantImageAttr"
+                          disabled={attributesLocked || !a.name.trim()}
+                          checked={variantImageAttrName === a.name.trim()}
+                          onChange={() => setVariantImageAttrName(a.name.trim())}
+                          className="h-4 w-4"
+                        />
+                        Gán ảnh theo thuộc tính này
+                      </label>
                     </div>
 
                     <div className="md:col-span-2">
                       <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Giá trị</label>
                       <TagInput
                         value={a.values}
+                        disabled={attributesLocked}
+                        maxItems={20}
+                        onLimitReached={() => showToast('Mỗi thuộc tính tối đa 20 giá trị', 'warning')}
                         onChange={(next) => {
+                          if (attributesLocked) return;
                           setDraft((prev) => ({
                             ...prev,
                             attributes: prev.attributes.map((x) => (x.id === a.id ? { ...x, values: next } : x)),
@@ -1216,6 +1362,7 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                         <button
                           type="button"
                           onClick={() => removeAttribute(a.id)}
+                          disabled={attributesLocked}
                           className="text-sm font-semibold text-red-600 hover:text-red-700"
                         >
                           Xoá thuộc tính
@@ -1229,6 +1376,19 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                   <div className="text-sm text-gray-500 dark:text-gray-400">Chưa có thuộc tính. Thêm thuộc tính để tạo biến thể.</div>
                 )}
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+              <div className="text-sm text-gray-800 dark:text-gray-200">
+                Tổng số biến thể sẽ tạo:{' '}
+                <span className="font-semibold">{attributesForGeneration.valid ? attributesForGeneration.count : 0}</span>
+                {attributesForGeneration.breakdown ? (
+                  <span className="text-xs text-gray-500 dark:text-gray-400"> ({attributesForGeneration.breakdown})</span>
+                ) : null}
+              </div>
+              {attributesForGeneration.overLimit && (
+                <div className="mt-1 text-sm font-semibold text-red-600">Số biến thể vượt giới hạn 200</div>
+              )}
             </div>
 
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
@@ -1246,7 +1406,12 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                       onChange={(e) => setField('sku_pattern', e.target.value)}
                       className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
                     />
-                      <div className="text-[11px] text-gray-500 mt-1">Mặc định: {'{{product_code}}-{{attribute_values}}'}</div>
+                    <div className="text-[11px] text-gray-500 mt-1">Mặc định: {'{{product_code}}-{{attribute_values}}'}</div>
+                    {skuExample && (
+                      <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1">
+                        Ví dụ SKU: <span className="font-semibold">{skuExample}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="min-w-[220px]">
@@ -1261,7 +1426,7 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
 
                   <button
                     type="button"
-                    disabled={isGenerating}
+                    disabled={isGenerating || attributesForGeneration.overLimit}
                     onClick={generateVariants}
                     className="h-[42px] self-end inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white px-4 py-2 font-semibold"
                   >
@@ -1275,13 +1440,10 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Bulk Actions</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Áp dụng cho dòng đã chọn (hoặc tất cả nếu chưa chọn).</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Áp dụng cho dòng đã chọn, hoặc cho tất cả nếu tick bên dưới.</div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => bulkCopySkuPattern()} className="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
-                    Copy SKU pattern
-                  </button>
                   <button type="button" onClick={() => bulkAdjustPercent(10)} className="rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
                     +10%
                   </button>
@@ -1290,6 +1452,16 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                   </button>
                 </div>
               </div>
+
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <input
+                  type="checkbox"
+                  checked={applyBulkToAll}
+                  onChange={(e) => setApplyBulkToAll(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Áp dụng cho tất cả biến thể
+              </label>
 
               <div className="flex flex-wrap gap-2">
                 <div className="flex items-center gap-2">
@@ -1334,24 +1506,42 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                     }}
                   />
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Set trạng thái:</span>
+                  <select
+                    className="w-36 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+                    defaultValue=""
+                    onChange={(e) => {
+                      const v = e.target.value as VariantRow['status'] | '';
+                      if (!v) return;
+                      bulkSetStatus(v);
+                      e.target.value = '';
+                    }}
+                  >
+                    <option value="">—</option>
+                    <option value="active">Đang bán</option>
+                    <option value="inactive">Ẩn</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            {colorAttributeName && (
+            {variantImageAttrName && (
               <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-3">
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Ảnh theo biến thể (theo Màu)</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Gán 1 ảnh cho tất cả biến thể cùng màu.</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Ảnh theo biến thể (theo {variantImageAttrName})</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Gán 1 ảnh cho tất cả biến thể có cùng giá trị thuộc tính.</div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {uniq(draft.attributes.find((a) => a.name.trim() === colorAttributeName)?.values || []).map((color) => (
-                    <label key={color} className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{color}</div>
+                  {uniq(draft.attributes.find((a) => a.name.trim() === variantImageAttrName)?.values || []).map((val) => (
+                    <label key={val} className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{val}</div>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => assignImageByColor(color, e.target.files?.[0] ?? null)}
+                        onChange={(e) => assignImageByAttributeValue(val, e.target.files?.[0] ?? null)}
                         className="text-xs"
                       />
                     </label>
@@ -1364,7 +1554,7 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Bảng quản lý biến thể</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Inline edit, scroll khi nhiều biến thể.</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Tổng biến thể: {draft.variants.length}</div>
                 </div>
 
                 <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -1394,15 +1584,12 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                           />
                         </th>
                         <th className="px-3 py-2 text-left">Ảnh</th>
-                        {draft.attributes.map((a) => (
-                          <th key={a.id} className="px-3 py-2 text-left">{a.name || 'Thuộc tính'}</th>
-                        ))}
                         <th className="px-3 py-2 text-left">SKU *</th>
+                        <th className="px-3 py-2 text-left">Thuộc tính</th>
                         <th className="px-3 py-2 text-left">Giá *</th>
                         <th className="px-3 py-2 text-left">Giá vốn</th>
                         <th className="px-3 py-2 text-left">Kho{draft.manage_stock_by_variant ? ' *' : ''}</th>
                         <th className="px-3 py-2 text-left">Trạng thái</th>
-                        <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -1433,30 +1620,6 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                               className="text-xs"
                             />
                           </td>
-                          {draft.attributes.map((a) => (
-                            <td key={a.id} className="px-3 py-2">
-                              <select
-                                value={v.attributes?.[a.name] || ''}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  setDraft((prev) => ({
-                                    ...prev,
-                                    variants: prev.variants.map((x) =>
-                                      x.id === v.id ? { ...x, attributes: { ...(x.attributes || {}), [a.name]: value } } : x
-                                    ),
-                                  }));
-                                }}
-                                className="w-40 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2"
-                              >
-                                <option value="">—</option>
-                                {uniq(a.values).map((val) => (
-                                  <option key={val} value={val}>
-                                    {val}
-                                  </option>
-                                ))}
-                              </select>
-                            </td>
-                          ))}
                           <td className="px-3 py-2">
                             <input
                               value={v.sku}
@@ -1469,6 +1632,20 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                               }}
                               className="w-56 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2"
                             />
+                          </td>
+
+                          <td className="px-3 py-2">
+                            <div className="min-w-[220px] space-y-0.5 text-xs text-gray-700 dark:text-gray-200">
+                              {draft.attributes
+                                .map((a) => a.name.trim())
+                                .filter(Boolean)
+                                .slice(0, 3)
+                                .map((name) => (
+                                  <div key={name}>
+                                    <span className="font-semibold">{name}:</span> {v.attributes?.[name] || '—'}
+                                  </div>
+                                ))}
+                            </div>
                           </td>
                           <td className="px-3 py-2">
                             <input
@@ -1529,24 +1706,12 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
                               <option value="inactive">Ẩn</option>
                             </select>
                           </td>
-                          <td className="px-3 py-2">
-                            <button
-                              type="button"
-                              className="text-sm font-semibold text-red-600 hover:text-red-700"
-                              onClick={() => {
-                                setDraft((prev) => ({ ...prev, variants: prev.variants.filter((x) => x.id !== v.id) }));
-                                setSelectedVariantIds((prev) => prev.filter((x) => x !== v.id));
-                              }}
-                            >
-                              Xoá
-                            </button>
-                          </td>
                         </tr>
                       ))}
 
                       {draft.variants.length === 0 && (
                         <tr>
-                          <td colSpan={9 + draft.attributes.length} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                          <td colSpan={8} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                             Chưa có biến thể.
                           </td>
                         </tr>
@@ -1716,6 +1881,39 @@ const ProductForm = ({ id, onSuccess, onCancel }: ProductFormProps) => {
   return (
     <>
       <LoadingOverlay isLoading={loading || isSubmitting} text={loading ? 'Đang tải sản phẩm...' : isSubmitting ? 'Đang lưu sản phẩm...' : ''} />
+
+      {confirmEditAttributes && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+            <div className="text-base font-semibold text-gray-900 dark:text-gray-100">Chỉnh sửa thuộc tính?</div>
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              Thay đổi thuộc tính sẽ xoá toàn bộ biến thể hiện tại. Bạn có chắc muốn tiếp tục?
+            </div>
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmEditAttributes(false)}
+                className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200"
+              >
+                Huỷ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmEditAttributes(false);
+                  setDraft((prev) => ({ ...prev, variants: [] }));
+                  setSelectedVariantIds([]);
+                  setAttributesLocked(false);
+                }}
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
