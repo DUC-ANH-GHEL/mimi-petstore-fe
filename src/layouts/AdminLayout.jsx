@@ -7,6 +7,36 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('mimi_admin_theme');
+      if (saved === 'dark') {
+        setDarkMode(true);
+        return;
+      }
+      if (saved === 'light') {
+        setDarkMode(false);
+        return;
+      }
+    } catch {
+      // ignore
+    }
+
+    const prefersDark =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setDarkMode(Boolean(prefersDark));
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('mimi_admin_theme', darkMode ? 'dark' : 'light');
+    } catch {
+      // ignore
+    }
+  }, [darkMode]);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -41,7 +71,7 @@ const AdminLayout = () => {
             sidebarOpen ? 'ml-64' : 'ml-20'
           }`}
         >
-          <Header sidebarOpen={sidebarOpen} darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
+          <Header sidebarOpen={sidebarOpen} darkMode={darkMode} toggleDarkMode={() => setDarkMode((v) => !v)} />
 
           <main className="flex-1 overflow-y-auto p-6 pt-24">
             <Outlet />
