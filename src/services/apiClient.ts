@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { globalLoadingManager } from './loadingManager';
 
 const getAdminToken = () => localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
 
@@ -33,7 +34,11 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(
+  (config) => {
+    const skipGlobalLoading = Boolean((config as any)?.skipGlobalLoading);
+    if (!skipGlobalLoading) globalLoadingManager.start();
+
   const token = getAdminToken();
 
   if (token) {
@@ -43,11 +48,23 @@ apiClient.interceptors.request.use((config) => {
   }
 
   return config;
-});
+  },
+  (error) => {
+    globalLoadingManager.stop();
+    return Promise.reject(error);
+  },
+);
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const skipGlobalLoading = Boolean((response?.config as any)?.skipGlobalLoading);
+    if (!skipGlobalLoading) globalLoadingManager.stop();
+    return response;
+  },
   (error) => {
+    const skipGlobalLoading = Boolean((error?.config as any)?.skipGlobalLoading);
+    if (!skipGlobalLoading) globalLoadingManager.stop();
+
     const status = error?.response?.status;
     const url = error?.config?.url as string | undefined;
 
